@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from morveux import __version__
 
 
-install_requires = ['gevent']
+install_requires = ['gevent', 'statsd-client']
 
 try:
     import argparse     # NOQA

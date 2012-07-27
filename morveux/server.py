@@ -1,4 +1,7 @@
 import sys
+
+from statsd import StatsdClient
+
 import gevent
 from gevent.server import StreamServer
 from gevent.socket import create_connection, gethostbyname
@@ -11,8 +14,13 @@ class DoWeirdThingsPlease(StreamServer):
         self.dest = dest
         self.config = config
         self.running = True
+        self.statsd = StatsdClient(host=config.get('host', '127.0.0.1'),
+                                   port=config.get('port', 8125),
+                                   prefix=config.get('prefix', 'morveux'),
+                                   sample_rate=config.get('sample_rate', 1.0))
 
     def handle(self, source, address):
+        self.statsd.incr('proxied')
         dest = create_connection(self.dest)
         gevent.spawn(self.weirdify, source, dest)
         gevent.spawn(self.weirdify, dest, source)
