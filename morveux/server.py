@@ -51,7 +51,7 @@ def parse_address(address):
 def main():
     args = sys.argv[1:]
     if len(args) != 2:
-        sys.exit('Usage: %s source-address destination-address' % __file__)
+        sys.exit('Usage: %s localhost:port destination:port' % __file__)
     source = parse_address(args[0])
     dest = parse_address(args[1])
     server = DoWeirdThingsPlease(source, dest)
