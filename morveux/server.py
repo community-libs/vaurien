@@ -1,5 +1,4 @@
 import sys
-import signal
 import argparse
 
 import gevent
@@ -11,35 +10,30 @@ from morveux import __version__
 
 class DoWeirdThingsPlease(StreamServer):
 
-    def __init__(self, listener, dest, **kwargs):
+    def __init__(self, listener, dest, config=None, **kwargs):
         StreamServer.__init__(self, listener, **kwargs)
         self.dest = dest
+        self.config = config
+        self.running = True
 
     def handle(self, source, address):
         try:
             dest = create_connection(self.dest)
         except IOError:
             return
-        gevent.spawn(forward, source, dest)
-        gevent.spawn(forward, dest, source)
+        gevent.spawn(self.forward, source, dest)
+        gevent.spawn(self.forward, dest, source)
 
-    def close(self):
-        if self.closed:
-            sys.exit('Multiple exit signals received - aborting.')
-        else:
-            StreamServer.close(self)
-
-
-def forward(source, dest):
-    try:
-        while True:
-            data = source.recv(1024)
-            if not data:
-                break
-            dest.sendall(data)
-    finally:
-        source.close()
-        dest.close()
+    def forward(self, source, dest):
+        try:
+            while self.running:
+                data = source.recv(1024)
+                if not data:
+                    break
+                dest.sendall(data)
+        finally:
+            source.close()
+            dest.close()
 
 
 def parse_address(address):
@@ -72,14 +66,10 @@ def main():
     server = DoWeirdThingsPlease(parse_address(args.local),
                                  parse_address(args.distant))
 
-    gevent.signal(signal.SIGTERM, server.close)
-    gevent.signal(signal.SIGINT, server.close)
-
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         sys.exit(0)
-
 
 if __name__ == '__main__':
     main()
