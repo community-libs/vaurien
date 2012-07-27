@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-install_requires = []
+install_requires = ['gevent']
 
 
 with open('README.rst') as f:
