@@ -26,5 +26,5 @@ setup(name='morveux',
       test_suite='nose.collector',
       entry_points="""
       [console_scripts]
-      gamin = gamin.server:main
+      morveux = morveux.server:main
       """)
