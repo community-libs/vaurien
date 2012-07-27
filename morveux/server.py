@@ -13,14 +13,11 @@ class DoWeirdThingsPlease(StreamServer):
         self.running = True
 
     def handle(self, source, address):
-        try:
-            dest = create_connection(self.dest)
-        except IOError:
-            return
-        gevent.spawn(self.forward, source, dest)
-        gevent.spawn(self.forward, dest, source)
+        dest = create_connection(self.dest)
+        gevent.spawn(self.weirdify, source, dest)
+        gevent.spawn(self.weirdify, dest, source)
 
-    def forward(self, source, dest):
+    def weirdify(self, source, dest):
         try:
             while self.running:
                 data = source.recv(1024)
