@@ -1,7 +1,13 @@
 from setuptools import setup, find_packages
+from morveux import __version__
 
 
 install_requires = ['gevent']
+
+try:
+    import argparse     # NOQA
+except ImportError:
+    install_requires.append('argparse')
 
 
 with open('README.rst') as f:
@@ -9,7 +15,7 @@ with open('README.rst') as f:
 
 
 setup(name='morveux',
-      version='0.1',
+      version=__version__,
       packages=find_packages(),
       description=("TCP hazard"),
       long_description=README,
