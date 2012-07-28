@@ -3,8 +3,8 @@ import argparse
 import sys
 import logging
 
-from morveux.server import DoWeirdThingsPlease, parse_address
-from morveux.config import MorveuxConfig
+from morveux.server import DoWeirdThingsPlease
+from morveux.config import load_into_settings, DEFAULT_SETTINGS
 from morveux import __version__, logger
 
 
@@ -38,24 +38,36 @@ def configure_logger(logger, level='INFO', output="-"):
     logger.addHandler(h)
 
 
-def get_statsd_from_config(config):
-        if config['use_statsd']:
-            from statsd import StatsdClient
-            statsd = StatsdClient(host=config['statsd_host'],
-                                  port=config['statsd_port'],
-                                  prefix=config['statsd_prefix'],
-                                  sample_rate=config['statsd_sample_rate'])
-        else:
-            statsd = None
-        return statsd
+def get_statsd_from_settings(settings):
+    if settings['enabled']:
+        from statsd import StatsdClient
+        statsd = StatsdClient(host=settings['host'],
+                              port=settings['port'],
+                              prefix=settings['prefix'],
+                              sample_rate=settings['sample_rate'])
+    else:
+        statsd = None
+    return statsd
 
 
 def main():
     parser = argparse.ArgumentParser(description='Runs a mean TCP proxy.')
-    parser.add_argument('local', help='Local host and Port', nargs='?')
-    parser.add_argument('distant', help='Distant host and port', nargs='?')
+
+    # other arguments
+    parser.add_argument('--config', help='Configuration file', default=None)
     parser.add_argument('--version', action='store_true', default=False,
                         help='Displays version and exits.')
+
+    # get the values from the default config
+    keys = DEFAULT_SETTINGS.keys()
+    keys.sort()
+
+    for key in keys:
+        if key.startswith('morveux'):
+            key = key[len('morveux.'):]
+
+        parser.add_argument('--%s' % key, default=None)
+
     parser.add_argument('--log-level', dest='loglevel', default='info',
             choices=LOG_LEVELS.keys() + [key.upper() for key in
                 LOG_LEVELS.keys()],
@@ -69,23 +81,37 @@ def main():
         print(__version__)
         sys.exit(0)
 
-    if args.local is None or args.distant is None:
-        parser.print_usage()
-        sys.exit(0)
-
     # configure the logger
     configure_logger(logger, args.loglevel, args.logoutput)
 
-    config = MorveuxConfig()
-    statsd = get_statsd_from_config(config)
+    settings = DEFAULT_SETTINGS.copy()
+
+    if args.config is not None:
+        # read the config if provided
+        try:
+            load_into_settings(args.config, settings)
+        except ValueError, e:
+            print(e)
+            sys.exit(1)
+
+    # and finally overwrite with the commandline arguments
+    for key in settings.keys():
+        prefix = ''
+        if key.startswith('morveux'):
+            key = key[len('morveux.'):]
+            prefix = 'morveux.'
+
+        value = getattr(args, key)
+        if value is not None:
+            settings[prefix + key] = value
+
+    statsd = get_statsd_from_settings(settings.getsection('statsd'))
 
     # creating the server
-    server = DoWeirdThingsPlease(parse_address(args.local),
-                                 parse_address(args.distant),
-                                 config=config, statsd=statsd, logger=logger)
-
-    logger.info('Starting the mean proxy server')
-    logger.info('%s => %s' % (args.local, args.distant))
+    server = DoWeirdThingsPlease(local=settings['morveux.local'],
+                                 distant=settings['morveux.distant'],
+                                 settings=settings, statsd=statsd,
+                                 logger=logger)
 
     try:
         server.serve_forever()

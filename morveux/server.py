@@ -9,11 +9,19 @@ from gevent.socket import create_connection, gethostbyname
 
 class DoWeirdThingsPlease(StreamServer):
 
-    def __init__(self, listener, dest, protocol=None, config=None,
+    def __init__(self, local, distant, protocol=None, settings=None,
                  statsd=None, logger=None, **kwargs):
-        StreamServer.__init__(self, listener, **kwargs)
+
+        logger.info('Starting the mean proxy server')
+        logger.info('%s => %s' % (local, distant))
+
+        local = parse_address(local)
+        dest = parse_address(distant)
+
+        StreamServer.__init__(self, local, **kwargs)
+
         self.dest = dest
-        self.config = config
+        self.settings = settings
         self.prococol = protocol
         self.running = True
         self._statsd = statsd
@@ -23,7 +31,7 @@ class DoWeirdThingsPlease(StreamServer):
 
     def initialize_choices(self):
         total = 0
-        for key, value in self.config.items():
+        for key, value in self.settings.getsection('morveux').items():
             if key.endswith('ratio'):
                 total += value
                 if total > 100:
@@ -77,12 +85,12 @@ class DoWeirdThingsPlease(StreamServer):
         dest.sendall(self._get_data(source))
 
     def handle_delay(self, source, dest):
-        gevent.sleep(self.config['sleep_delay'])
+        gevent.sleep(self.settings['morveux.sleep_delay'])
         self.handle_proxy(source, dest)
 
     def handle_errors(self, source, dest):
         """Throw errors on the socket"""
-        self.__get_data(source)  # don't do anything with the data
+        self._get_data(source)  # don't do anything with the data
         # XXX find how to handle errors (which errors should we send)
         dest.sendall("YEAH")
 
