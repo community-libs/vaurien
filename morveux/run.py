@@ -4,6 +4,7 @@ import sys
 import logging
 
 from morveux.server import DoWeirdThingsPlease, parse_address
+from morveux.config import MorveuxConfig
 from morveux import __version__, logger
 
 
@@ -65,10 +66,12 @@ def main():
 
     # creating the server
     server = DoWeirdThingsPlease(parse_address(args.local),
-                                 parse_address(args.distant))
+                                 parse_address(args.distant),
+                                 config=MorveuxConfig())
 
     logger.info('Starting the mean proxy server')
     logger.info('%s => %s' % (args.local, args.distant))
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:
