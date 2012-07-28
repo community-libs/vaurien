@@ -5,6 +5,13 @@ class MorveuxConfig(dict):
         'errors_ratio': 5,
         'blackout_ratio': 5,
         'proxy_ratio': 80,
+
+        # stats config
+        'use_statsd': False,
+        'statsd_host': 'localhost',
+        'statsd_port': 8125,
+        'statsd_prefix': 'morveux',
+        'statsd_sample_rate': 1.0
     }
 
     def __init__(self, **kwargs):

@@ -1,7 +1,5 @@
 import sys
 
-from statsd import StatsdClient
-
 import gevent
 import random
 
@@ -11,16 +9,15 @@ from gevent.socket import create_connection, gethostbyname
 
 class DoWeirdThingsPlease(StreamServer):
 
-    def __init__(self, listener, dest, protocol=None, config=None, **kwargs):
+    def __init__(self, listener, dest, protocol=None, config=None,
+                 statsd=None, logger=None, **kwargs):
         StreamServer.__init__(self, listener, **kwargs)
         self.dest = dest
         self.config = config
         self.prococol = protocol
         self.running = True
-        self.statsd = StatsdClient(host=config.get('host', '127.0.0.1'),
-                                   port=config.get('port', 8125),
-                                   prefix=config.get('prefix', 'morveux'),
-                                   sample_rate=config.get('sample_rate', 1.0))
+        self._statsd = statsd
+        self._logger = logger
         self.choices = []
         self.initialize_choices()
 
@@ -41,7 +38,6 @@ class DoWeirdThingsPlease(StreamServer):
                 self.choices.extend(value * [getattr(self, case)])
 
     def handle(self, source, address):
-        self.statsd.incr('proxied')
         dest = create_connection(self.dest)
         gevent.spawn(self.weirdify, source, dest)
         gevent.spawn(self.weirdify, dest, source)
@@ -51,6 +47,12 @@ class DoWeirdThingsPlease(StreamServer):
         if not data:
             raise ValueError
         return data
+
+    def statsd_incr(self, counter):
+        if self._statsd:
+            self._statsd.incr(counter)
+        elif self._logger:
+            self._logger.info(counter)
 
     def weirdify(self, source, dest):
         """This is where all the magic happens.
@@ -62,7 +64,7 @@ class DoWeirdThingsPlease(StreamServer):
             while self.running:
                 # chose what we want to do.
                 handler = random.choice(self.choices)
-                print(handler.__name__)
+                self.statsd_incr(handler.__name__)
                 try:
                     handler(source, dest)
                 except ValueError:
