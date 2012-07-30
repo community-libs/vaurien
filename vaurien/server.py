@@ -7,6 +7,7 @@ from gevent.server import StreamServer
 from gevent.socket import create_connection, gethostbyname
 
 from vaurien.util import import_string, parse_address
+from vaurien.handlers import normal
 
 
 class DoWeirdThingsPlease(StreamServer):
@@ -34,7 +35,8 @@ class DoWeirdThingsPlease(StreamServer):
     def initialize_choices(self):
         total = 0
         behavior = self.settings.getsection('vaurien')['behavior']
-        choices = []
+        choices = {}
+
         for behavior in behavior.split(','):
             choice = behavior.split(':')
             if len(choice) != 2:
@@ -44,15 +46,21 @@ class DoWeirdThingsPlease(StreamServer):
             try:
                 handler = import_string(handler)
             except ImportError:
-                handler = import_string('vaurien.handlers' + handler)
+                handler = import_string('vaurien.handlers.' + handler)
 
-            choices.append((percent, handler))
+            choices[handler] = percent
             total += int(percent)
 
-        if total != 100:
-            raise ValueError('The behavior total needs to be 100')
+        if total > 100:
+            raise ValueError('The behavior total needs to be 100 or less')
+        elif total < 100:
+            missing = 100 - total
+            if normal in choices:
+                choices[normal] += missing
+            else:
+                choices[normal] = missing
 
-        for percent, handler in choices:
+        for handler, percent in choices.items():
             self.choices.extend(percent * [handler])
 
     def handle(self, source, address):
