@@ -32,5 +32,5 @@ setup(name='vaurien',
       test_suite='nose.collector',
       entry_points="""
       [console_scripts]
-      morveux = morveux.run:main
+      vaurien = vaurien.run:main
       """)
