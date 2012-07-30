@@ -1,10 +1,8 @@
-import sys
-
 import gevent
 import random
 
 from gevent.server import StreamServer
-from gevent.socket import create_connection, gethostbyname
+from gevent.socket import create_connection
 
 from vaurien.util import import_string, parse_address
 from vaurien.handlers import normal
@@ -86,6 +84,7 @@ class DoWeirdThingsPlease(StreamServer):
                 handler = random.choice(self.choices)
                 self.statsd_incr(handler.__name__)
                 try:
+                    settings = self.settings.getsection('handlers:%s' % name)
                     handler(source, dest, settings, back)
                 except ValueError:
                     return
