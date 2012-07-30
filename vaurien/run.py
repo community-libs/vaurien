@@ -3,9 +3,9 @@ import argparse
 import sys
 import logging
 
-from morveux.server import DoWeirdThingsPlease
-from morveux.config import load_into_settings, DEFAULT_SETTINGS
-from morveux import __version__, logger
+from vaurien.server import DoWeirdThingsPlease
+from vaurien.config import load_into_settings, DEFAULT_SETTINGS
+from vaurien import __version__, logger
 
 
 LOG_LEVELS = {
@@ -63,8 +63,8 @@ def main():
     keys.sort()
 
     for key in keys:
-        if key.startswith('morveux'):
-            key = key[len('morveux.'):]
+        if key.startswith('vaurien'):
+            key = key[len('vaurien.'):]
 
         parser.add_argument('--%s' % key, default=None)
 
@@ -97,9 +97,9 @@ def main():
     # and finally overwrite with the commandline arguments
     for key in settings.keys():
         prefix = ''
-        if key.startswith('morveux'):
-            key = key[len('morveux.'):]
-            prefix = 'morveux.'
+        if key.startswith('vaurien'):
+            key = key[len('vaurien.'):]
+            prefix = 'vaurien.'
 
         value = getattr(args, key)
         if value is not None:
@@ -108,8 +108,8 @@ def main():
     statsd = get_statsd_from_settings(settings.getsection('statsd'))
 
     # creating the server
-    server = DoWeirdThingsPlease(local=settings['morveux.local'],
-                                 distant=settings['morveux.distant'],
+    server = DoWeirdThingsPlease(local=settings['vaurien.local'],
+                                 distant=settings['vaurien.distant'],
                                  settings=settings, statsd=statsd,
                                  logger=logger)
 

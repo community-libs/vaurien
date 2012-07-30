@@ -250,18 +250,18 @@ class SettingsDict(dict):
 
 DEFAULT_SETTINGS = SettingsDict({
         # default ratios
-        'morveux.local': 'localhost:8000',
-        'morveux.distant': 'localhost:80',
-        'morveux.delay_ratio': 10,  # 10%
-        'morveux.errors_ratio': 5,
-        'morveux.blackout_ratio': 5,
-        'morveux.proxy_ratio': 80,
-        'morveux.sleep_delay': 2,
+        'vaurien.local': 'localhost:8000',
+        'vaurien.distant': 'localhost:80',
+        'vaurien.delay_ratio': 10,  # 10%
+        'vaurien.errors_ratio': 5,
+        'vaurien.blackout_ratio': 5,
+        'vaurien.proxy_ratio': 80,
+        'vaurien.sleep_delay': 2,
 
         # stats config
         'statsd.enabled': False,
         'statsd.host': 'localhost',
         'statsd.port': 8125,
-        'statsd.prefix': 'morveux',
+        'statsd.prefix': 'vaurien',
         'statsd.sample_rate': 1.0
 })

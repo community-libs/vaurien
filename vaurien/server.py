@@ -31,7 +31,7 @@ class DoWeirdThingsPlease(StreamServer):
 
     def initialize_choices(self):
         total = 0
-        for key, value in self.settings.getsection('morveux').items():
+        for key, value in self.settings.getsection('vaurien').items():
             if key.endswith('ratio'):
                 total += value
                 if total > 100:
@@ -85,7 +85,7 @@ class DoWeirdThingsPlease(StreamServer):
         dest.sendall(self._get_data(source))
 
     def handle_delay(self, source, dest):
-        gevent.sleep(self.settings['morveux.sleep_delay'])
+        gevent.sleep(self.settings['vaurien.sleep_delay'])
         self.handle_proxy(source, dest)
 
     def handle_errors(self, source, dest):

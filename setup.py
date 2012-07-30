@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from morveux import __version__
+from vaurien import __version__
 
 
 install_requires = ['gevent', 'statsd-client']
@@ -14,7 +14,7 @@ with open('README.rst') as f:
     README = f.read()
 
 
-setup(name='morveux',
+setup(name='vaurien',
       version=__version__,
       packages=find_packages(),
       description=("TCP hazard"),
