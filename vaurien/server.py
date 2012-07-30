@@ -6,6 +6,8 @@ import random
 from gevent.server import StreamServer
 from gevent.socket import create_connection, gethostbyname
 
+from vaurien.util import import_string, parse_address
+
 
 class DoWeirdThingsPlease(StreamServer):
 
@@ -31,30 +33,32 @@ class DoWeirdThingsPlease(StreamServer):
 
     def initialize_choices(self):
         total = 0
-        for key, value in self.settings.getsection('vaurien').items():
-            if key.endswith('ratio'):
-                total += value
-                if total > 100:
-                    print "cumulative ratios need to be < 100"
-                    sys.exit(1)
+        behavior = self.settings.getsection('vaurien')['behavior']
+        choices = []
+        for behavior in behavior.split(','):
+            choice = behavior.split(':')
+            if len(choice) != 2:
+                continue
+            percent, handler = choice
+            percent = int(percent)
+            try:
+                handler = import_string(handler)
+            except ImportError:
+                handler = import_string('vaurien.handlers' + handler)
 
-                case = 'handle_%s' % key[:-len('_ratio')]
-                if not hasattr(self, case):
-                    print "we don't know how to handle %s" % case
-                    sys.exit(1)
+            choices.append((percent, handler))
+            total += int(percent)
 
-                self.choices.extend(value * [getattr(self, case)])
+        if total != 100:
+            raise ValueError('The behavior total needs to be 100')
+
+        for percent, handler in choices:
+            self.choices.extend(percent * [handler])
 
     def handle(self, source, address):
         dest = create_connection(self.dest)
-        gevent.spawn(self.weirdify, source, dest)
-        gevent.spawn(self.weirdify, dest, source)
-
-    def _get_data(self, source):
-        data = source.recv(1024)
-        if not data:
-            raise ValueError
-        return data
+        gevent.spawn(self.weirdify, source, dest, True)
+        gevent.spawn(self.weirdify, dest, source, False)
 
     def statsd_incr(self, counter):
         if self._statsd:
@@ -62,7 +66,7 @@ class DoWeirdThingsPlease(StreamServer):
         elif self._logger:
             self._logger.info(counter)
 
-    def weirdify(self, source, dest):
+    def weirdify(self, source, dest, back):
         """This is where all the magic happens.
 
         Depending the configuration, we will chose to either drop packets,
@@ -74,36 +78,9 @@ class DoWeirdThingsPlease(StreamServer):
                 handler = random.choice(self.choices)
                 self.statsd_incr(handler.__name__)
                 try:
-                    handler(source, dest)
+                    handler(source, dest, settings, back)
                 except ValueError:
                     return
         finally:
             source.close()
             dest.close()
-
-    def handle_proxy(self, source, dest):
-        dest.sendall(self._get_data(source))
-
-    def handle_delay(self, source, dest):
-        gevent.sleep(self.settings['vaurien.sleep_delay'])
-        self.handle_proxy(source, dest)
-
-    def handle_errors(self, source, dest):
-        """Throw errors on the socket"""
-        self._get_data(source)  # don't do anything with the data
-        # XXX find how to handle errors (which errors should we send)
-        dest.sendall("YEAH")
-
-    def handle_blackout(self, source, dest):
-        """just drop the packets that had been sent"""
-        # consume the socket. That's it.
-        self._get_data(source)
-
-
-def parse_address(address):
-    try:
-        hostname, port = address.rsplit(':', 1)
-        port = int(port)
-    except ValueError:
-        sys.exit('Expected HOST:PORT: %r' % address)
-    return gethostbyname(hostname), port

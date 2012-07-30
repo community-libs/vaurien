@@ -248,15 +248,13 @@ class SettingsDict(dict):
         for k, v in kwds.iteritems():
             self.setdefault(k, v)
 
+
 DEFAULT_SETTINGS = SettingsDict({
         # default ratios
         'vaurien.local': 'localhost:8000',
         'vaurien.distant': 'localhost:80',
-        'vaurien.delay_ratio': 10,  # 10%
-        'vaurien.errors_ratio': 5,
-        'vaurien.blackout_ratio': 5,
-        'vaurien.proxy_ratio': 80,
         'vaurien.sleep_delay': 2,
+        'vaurien.behavior': '100:normal',
 
         # stats config
         'statsd.enabled': False,
