@@ -86,12 +86,13 @@ class DoWeirdThingsPlease(StreamServer):
         Depending the configuration, we will chose to either drop packets,
         proxy them, wait a long time, etc, as defined in the configuration.
         """
+        self._logger.debug('starting weirdify %s' % to_backend)
+        handler_name = random.choice(self.choices)
+        handler = self.handlers[handler_name]
+        self.statsd_incr(handler_name)
         try:
             while self.running:
                 # chose what we want to do.
-                handler_name = random.choice(self.choices)
-                handler = self.handlers[handler_name]
-                self.statsd_incr("%s %s" % (handler_name, to_backend))
                 try:
                     settings = self.settings.getsection('handlers:%s' %
                                                         handler_name)
@@ -102,10 +103,11 @@ class DoWeirdThingsPlease(StreamServer):
         finally:
             source.close()
             dest.close()
+            self._logger.debug('exiting weirdify %s' % to_backend)
 
     def get_data(self, source):
         try:
-            data = source.recv(self.settings['vaurien.bufsize'])
+            data = source.recv(int(self.settings['vaurien.bufsize']))
             if not data:
                 raise ValueError
             return data
