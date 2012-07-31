@@ -1,24 +1,23 @@
 import gevent
-from vaurien.util import get_data
 
 
-def normal(source, dest, settings, back):
-    dest.sendall(get_data(source))
+def normal(source, dest, to_backend, name, settings, server):
+    dest.sendall(server.get_data(source))
 
 
-def delay(source, dest, settings, back):
-    gevent.sleep(settings['sleep'])
-    normal(source, dest)
+def delay(**kwargs):
+    gevent.sleep(kwargs['settings'].get('sleep', 1))
+    normal(**kwargs)
 
 
-def errors(source, dest, settings, back):
+def errors(source, dest, to_backend, name, settings, server):
     """Throw errors on the socket"""
-    get_data(source)  # don't do anything with the data
+    server.get_data(source)
     # XXX find how to handle errors (which errors should we send)
     dest.sendall("YEAH")
 
 
-def blackout(source, dest, settings, back):
+def blackout(source, dest, to_backend, name, settings, server):
     """just drop the packets that had been sent"""
     # consume the socket. That's it.
-    get_data(source)
+    server.get_data(source)

@@ -2,7 +2,7 @@ import gevent
 import random
 
 from gevent.server import StreamServer
-from gevent.socket import create_connection
+from gevent.socket import create_connection, error
 
 from vaurien.util import import_string, parse_address
 from vaurien.handlers import normal
@@ -28,6 +28,7 @@ class DoWeirdThingsPlease(StreamServer):
         self._statsd = statsd
         self._logger = logger
         self.choices = []
+        self.handlers = {}
         self.initialize_choices()
 
     def initialize_choices(self):
@@ -38,28 +39,35 @@ class DoWeirdThingsPlease(StreamServer):
         for behavior in behavior.split(','):
             choice = behavior.split(':')
             if len(choice) != 2:
-                continue
-            percent, handler = choice
-            percent = int(percent)
-            try:
-                handler = import_string(handler)
-            except ImportError:
-                handler = import_string('vaurien.handlers.' + handler)
+                raise ValueError('You need to use name:percentage')
 
-            choices[handler] = percent
-            total += int(percent)
+            percent, handler_name = choice
+            percent = int(percent)
+
+            # have a look if we have a section named handler:{handler}
+            self.settings.getsection('handler:%s' % handler_name)
+
+            # import from the python path, fallback on vaurien handlers
+            try:
+                handler = import_string(handler_name)
+            except ImportError:
+                handler = import_string('vaurien.handlers.' + handler_name)
+
+            choices[handler_name] = handler, percent
+            total += percent
 
         if total > 100:
             raise ValueError('The behavior total needs to be 100 or less')
         elif total < 100:
             missing = 100 - total
-            if normal in choices:
-                choices[normal] += missing
+            if 'normal' in choices:
+                choices['normal'][1] += missing
             else:
-                choices[normal] = missing
+                choices['normal'] = normal, missing
 
-        for handler, percent in choices.items():
-            self.choices.extend(percent * [handler])
+        for name, (handler, percent) in choices.items():
+            self.choices.extend(percent * [name])
+            self.handlers[name] = handler
 
     def handle(self, source, address):
         dest = create_connection(self.dest)
@@ -72,7 +80,7 @@ class DoWeirdThingsPlease(StreamServer):
         elif self._logger:
             self._logger.info(counter)
 
-    def weirdify(self, source, dest, back):
+    def weirdify(self, source, dest, to_backend):
         """This is where all the magic happens.
 
         Depending the configuration, we will chose to either drop packets,
@@ -81,13 +89,25 @@ class DoWeirdThingsPlease(StreamServer):
         try:
             while self.running:
                 # chose what we want to do.
-                handler = random.choice(self.choices)
-                self.statsd_incr(handler.__name__)
+                handler_name = random.choice(self.choices)
+                handler = self.handlers[handler_name]
+                self.statsd_incr("%s %s" % (handler_name, to_backend))
                 try:
-                    settings = self.settings.getsection('handlers:%s' % name)
-                    handler(source, dest, settings, back)
+                    settings = self.settings.getsection('handlers:%s' %
+                                                        handler_name)
+                    handler(source=source, dest=dest, to_backend=to_backend,
+                            name=handler_name, server=self, settings=settings)
                 except ValueError:
                     return
         finally:
             source.close()
             dest.close()
+
+    def get_data(self, source):
+        try:
+            data = source.recv(self.settings['vaurien.bufsize'])
+            if not data:
+                raise ValueError
+            return data
+        except error:  # socket.error
+            raise ValueError

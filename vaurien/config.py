@@ -255,6 +255,7 @@ DEFAULT_SETTINGS = SettingsDict({
         'vaurien.distant': 'localhost:80',
         'vaurien.sleep_delay': 2,
         'vaurien.behavior': '100:normal',
+        'vaurien.bufsize': 1024,
 
         # stats config
         'statsd.enabled': False,

@@ -1,14 +1,6 @@
-import os
-import time
 import sys
-import socket
-import threading
-import select
-import random
-import Queue
 
 from gevent.socket import gethostbyname
-
 
 
 class ImportStringError(ImportError):
@@ -95,13 +87,6 @@ def import_string(import_name, silent=False):
     except ImportError, e:
         if not silent:
             raise ImportStringError(import_name, e), None, sys.exc_info()[2]
-
-
-def get_data(source):
-    data = source.recv(1024)
-    if not data:
-        raise ValueError
-    return data
 
 
 def parse_address(address):
