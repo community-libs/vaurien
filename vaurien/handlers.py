@@ -10,7 +10,7 @@ def delay(source, dest, to_backend, name, settings, server):
         # a bit of delay before calling the backend
         gevent.sleep(kwargs['settings'].get('sleep', 1))
 
-    normal(**kwargs)
+    normal(source, dest, to_backend, name, settings, server)
 
 
 def errors(source, dest, to_backend, name, settings, server):
