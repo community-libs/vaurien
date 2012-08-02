@@ -1,3 +1,6 @@
+import time
+import errno
+import socket
 import gevent
 import random
 
@@ -70,12 +73,22 @@ class DoWeirdThingsPlease(StreamServer):
             self.handlers[name] = handler
 
     def handle(self, source, address):
+        source.setblocking(0)
         dest = create_connection(self.dest)
+        dest.setblocking(0)
         handler_name = random.choice(self.choices)
         handler = self.handlers[handler_name]
         self.statsd_incr(handler_name)
-        gevent.spawn(self.weirdify, handler, handler_name, source, dest, True)
-        gevent.spawn(self.weirdify, handler, handler_name, dest, source, False)
+        try:
+            back = gevent.spawn(self.weirdify, handler, handler_name, source,
+                                dest, True)
+            forth = gevent.spawn(self.weirdify, handler, handler_name, dest,
+                                 source, False)
+            back.join()
+            forth.join()
+        finally:
+            source.close()
+            dest.close()
 
     def statsd_incr(self, counter):
         if self._statsd:
@@ -91,25 +104,23 @@ class DoWeirdThingsPlease(StreamServer):
         """
         self._logger.debug('starting weirdify %s' % to_backend)
         try:
-            while self.running:
-                # chose what we want to do.
-                try:
-                    settings = self.settings.getsection('handler.%s' %
-                                                        handler_name)
-                    handler(source=source, dest=dest, to_backend=to_backend,
-                            name=handler_name, server=self, settings=settings)
-                except ValueError:
-                    return
+            settings = self.settings.getsection('handlers:%s' %
+                                                    handler_name)
+            handler(source=source, dest=dest, to_backend=to_backend,
+                    name=handler_name, server=self, settings=settings)
         finally:
-            source.close()
-            dest.close()
             self._logger.debug('exiting weirdify %s' % to_backend)
 
-    def get_data(self, source):
-        try:
-            data = source.recv(int(self.settings['vaurien.bufsize']))
-            if not data:
-                raise ValueError
-            return data
-        except error:  # socket.error
-            raise ValueError
+    def get_data(self, source, delay=.2):
+        bufsize = int(self.settings['vaurien.bufsize'])
+        data = ''
+        start = time.time()
+
+        while time.time() - start < delay:
+            try:
+                data += source.recv(bufsize)
+            except socket.error, err:
+                if err.args[0] == errno.EWOULDBLOCK:
+                    pass
+
+        return data

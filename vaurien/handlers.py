@@ -2,7 +2,8 @@ import gevent
 
 
 def normal(source, dest, to_backend, name, settings, server):
-    dest.sendall(server.get_data(source))
+    request = server.get_data(source)
+    dest.sendall(request)
 
 
 def delay(source, dest, to_backend, name, settings, server):
@@ -15,12 +16,22 @@ def delay(source, dest, to_backend, name, settings, server):
 
 def errors(source, dest, to_backend, name, settings, server):
     """Throw errors on the socket"""
+    if to_backend:
+        server.get_data(source)
+        # XXX find how to handle errors (which errors should we send)
+        #
+        # depends on the protocol
+        dest.sendall("YEAH")
+
+
+def hang(source, dest, to_backend, name, settings, server):
+    """Reads the packets that have been sent."""
+    # consume the socket and hang
     server.get_data(source)
-    # XXX find how to handle errors (which errors should we send)
-    dest.sendall("YEAH")
+    while True:
+        gevent.sleep(1.)
 
 
 def blackout(source, dest, to_backend, name, settings, server):
-    """just drop the packets that had been sent"""
-    # consume the socket. That's it
-    server.get_data(source)
+    """Don't do anything -- the sockets get closed"""
+    return

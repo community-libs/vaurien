@@ -1,5 +1,4 @@
 import sys
-
 from gevent.socket import gethostbyname
 
 
