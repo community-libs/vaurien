@@ -71,8 +71,11 @@ class DoWeirdThingsPlease(StreamServer):
 
     def handle(self, source, address):
         dest = create_connection(self.dest)
-        gevent.spawn(self.weirdify, source, dest, True)
-        gevent.spawn(self.weirdify, dest, source, False)
+        handler_name = random.choice(self.choices)
+        handler = self.handlers[handler_name]
+        self.statsd_incr(handler_name)
+        gevent.spawn(self.weirdify, handler, handler_name, source, dest, True)
+        gevent.spawn(self.weirdify, handler, handler_name, dest, source, False)
 
     def statsd_incr(self, counter):
         if self._statsd:
@@ -80,16 +83,13 @@ class DoWeirdThingsPlease(StreamServer):
         elif self._logger:
             self._logger.info(counter)
 
-    def weirdify(self, source, dest, to_backend):
+    def weirdify(self, handler, handler_name, source, dest, to_backend):
         """This is where all the magic happens.
 
         Depending the configuration, we will chose to either drop packets,
         proxy them, wait a long time, etc, as defined in the configuration.
         """
         self._logger.debug('starting weirdify %s' % to_backend)
-        handler_name = random.choice(self.choices)
-        handler = self.handlers[handler_name]
-        self.statsd_incr(handler_name)
         try:
             while self.running:
                 # chose what we want to do.
