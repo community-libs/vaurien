@@ -101,7 +101,7 @@ def main():
             key = key[len('vaurien.'):]
             prefix = 'vaurien.'
 
-        value = getattr(args, key)
+        value = getattr(args, key, None)
         if value is not None:
             settings[prefix + key] = value
 

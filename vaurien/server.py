@@ -45,13 +45,13 @@ class DoWeirdThingsPlease(StreamServer):
             percent = int(percent)
 
             # have a look if we have a section named handler:{handler}
-            self.settings.getsection('handler:%s' % handler_name)
+            settings = self.settings.getsection('handler.%s' % handler_name)
+            if settings and 'callable' in settings:
+                handler_location = settings['callable']
+            else:
+                handler_location = 'vaurien.handlers.' + handler_name
 
-            # import from the python path, fallback on vaurien handlers
-            try:
-                handler = import_string(handler_name)
-            except ImportError:
-                handler = import_string('vaurien.handlers.' + handler_name)
+            handler = import_string(handler_location)
 
             choices[handler_name] = handler, percent
             total += percent
@@ -94,7 +94,7 @@ class DoWeirdThingsPlease(StreamServer):
             while self.running:
                 # chose what we want to do.
                 try:
-                    settings = self.settings.getsection('handlers:%s' %
+                    settings = self.settings.getsection('handler.%s' %
                                                         handler_name)
                     handler(source=source, dest=dest, to_backend=to_backend,
                             name=handler_name, server=self, settings=settings)
