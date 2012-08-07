@@ -5,7 +5,7 @@ import gevent
 import random
 
 from gevent.server import StreamServer
-from gevent.socket import create_connection, error
+from gevent.socket import create_connection
 
 from vaurien.util import import_string, parse_address
 from vaurien.handlers import normal
@@ -107,7 +107,7 @@ class DoWeirdThingsPlease(StreamServer):
             settings = self.settings.getsection('handlers:%s' %
                                                     handler_name)
             handler(source=source, dest=dest, to_backend=to_backend,
-                    name=handler_name, server=self, settings=settings)
+                    name=handler_name, proxy=self, settings=settings)
         finally:
             self._logger.debug('exiting weirdify %s' % to_backend)
 

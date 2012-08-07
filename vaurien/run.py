@@ -3,7 +3,7 @@ import argparse
 import sys
 import logging
 
-from vaurien.server import DoWeirdThingsPlease
+from vaurien.proxy import DoWeirdThingsPlease
 from vaurien.config import load_into_settings, DEFAULT_SETTINGS
 from vaurien import __version__, logger
 
@@ -111,14 +111,14 @@ def main():
 
     statsd = get_statsd_from_settings(settings.getsection('statsd'))
 
-    # creating the server
-    server = DoWeirdThingsPlease(local=settings['vaurien.local'],
+    # creating the proxy
+    proxy = DoWeirdThingsPlease(local=settings['vaurien.local'],
                                  distant=settings['vaurien.distant'],
                                  settings=settings, statsd=statsd,
                                  logger=logger)
 
     try:
-        server.serve_forever()
+        proxy.serve_forever()
     except KeyboardInterrupt:
         sys.exit(0)
     finally:
