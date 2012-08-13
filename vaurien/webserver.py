@@ -1,7 +1,17 @@
 """A simple, flask-based webserver able to control how the proxy behaves"""
-from flask import (Flask, request, request_started, request_finished,
-                   make_response)
+import os
 import json
+
+try:
+    from flask import (Flask, request, request_started, request_finished,
+                       make_response)
+except ImportError as e:
+    reqs = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                        'web-requirements.txt')
+
+    raise ImportError('You need some dependencies to run the web interface. '\
+                    + 'You can do so by using "pip install -r '
+                    + '%s"\nInitial error: %s' % (reqs, str(e)))
 
 app = Flask(__name__)
 
