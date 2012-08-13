@@ -1,5 +1,6 @@
 """A simple, flask-based webserver able to control how the proxy behaves"""
-from flask import Flask, request, request_started, request_finished
+from flask import (Flask, request, request_started, request_finished,
+                   make_response)
 import json
 
 app = Flask(__name__)
@@ -22,7 +23,9 @@ def update_renderer():
 @app.route('/handlers')
 def list_handlers():
     """List all the available handlers"""
-    return json.dumps({'handlers': app.proxy.handlers.keys()})
+    resp = make_response(json.dumps({'handlers': app.proxy.handlers.keys()}))
+    resp.content_type = 'application/json'
+    return resp
 
 
 # utils
