@@ -35,3 +35,6 @@ def hang(source, dest, to_backend, name, settings, proxy):
 def blackout(source, dest, to_backend, name, settings, proxy):
     """Don't do anything -- the sockets get closed"""
     return
+
+
+handlers = (normal, delay, errors, hang, blackout)

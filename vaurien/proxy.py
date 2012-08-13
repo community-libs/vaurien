@@ -7,14 +7,19 @@ import random
 from gevent.server import StreamServer
 from gevent.socket import create_connection
 
-from vaurien.util import import_string, parse_address
-from vaurien.handlers import normal
+from vaurien.util import parse_address, get_handlers_from_config
+from vaurien.handlers import handlers as default_handlers, normal
 
 
-class DoWeirdThingsPlease(StreamServer):
+class DefaultProxy(StreamServer):
 
-    def __init__(self, local, distant, protocol=None, settings=None,
-                 statsd=None, logger=None, **kwargs):
+    def __init__(self, local, distant, handlers=None, protocol=None,
+                 settings=None, statsd=None, logger=None, **kwargs):
+
+        if handlers is None:
+            handlers = {}
+            for handler in default_handlers:
+                handlers[handler.__name__] = handler
 
         logger.info('Starting the mean proxy server')
         logger.info('%s => %s' % (local, distant))
@@ -30,54 +35,19 @@ class DoWeirdThingsPlease(StreamServer):
         self.running = True
         self._statsd = statsd
         self._logger = logger
-        self.choices = []
-        self.handlers = {}
-        self.initialize_choices()
+        self.handlers = handlers
+        self.handlers.update(get_handlers_from_config(self.settings, logger))
+        self.next_handler = normal
 
-    def initialize_choices(self):
-        total = 0
-        behavior = self.settings.getsection('vaurien')['behavior']
-        choices = {}
-
-        for behavior in behavior.split(','):
-            choice = behavior.split(':')
-            if len(choice) != 2:
-                raise ValueError('You need to use name:percentage')
-
-            percent, handler_name = choice
-            percent = int(percent)
-
-            # have a look if we have a section named handler:{handler}
-            settings = self.settings.getsection('handler.%s' % handler_name)
-            if settings and 'callable' in settings:
-                handler_location = settings['callable']
-            else:
-                handler_location = 'vaurien.handlers.' + handler_name
-
-            handler = import_string(handler_location)
-
-            choices[handler_name] = handler, percent
-            total += percent
-
-        if total > 100:
-            raise ValueError('The behavior total needs to be 100 or less')
-        elif total < 100:
-            missing = 100 - total
-            if 'normal' in choices:
-                choices['normal'][1] += missing
-            else:
-                choices['normal'] = normal, missing
-
-        for name, (handler, percent) in choices.items():
-            self.choices.extend(percent * [name])
-            self.handlers[name] = handler
+    def get_next_handler(self):
+        return self.next_handler
 
     def handle(self, source, address):
         source.setblocking(0)
         dest = create_connection(self.dest)
         dest.setblocking(0)
-        handler_name = random.choice(self.choices)
-        handler = self.handlers[handler_name]
+        handler = self.get_next_handler()
+        handler_name = handler.__name__
         self.statsd_incr(handler_name)
         try:
             back = gevent.spawn(self.weirdify, handler, handler_name, source,
@@ -104,7 +74,7 @@ class DoWeirdThingsPlease(StreamServer):
         """
         self._logger.debug('starting weirdify %s' % to_backend)
         try:
-            settings = self.settings.getsection('handlers:%s' %
+            settings = self.settings.getsection('handlers.%s' %
                                                     handler_name)
             handler(source=source, dest=dest, to_backend=to_backend,
                     name=handler_name, proxy=self, settings=settings)
@@ -124,3 +94,50 @@ class DoWeirdThingsPlease(StreamServer):
                     pass
 
         return data
+
+
+class RandomProxy(DefaultProxy):
+
+    def __init__(self, *args, **kwargs):
+        super(RandomProxy, self).__init__(*args, **kwargs)
+
+        self.choices = []
+        self.initialize_choices()
+
+    def initialize_choices(self):
+        total = 0
+        behavior = self.settings.getsection('vaurien')['behavior']
+        choices = {}
+
+        for behavior in behavior.split(','):
+            choice = behavior.split(':')
+            if len(choice) != 2:
+                raise ValueError('You need to use name:percentage')
+
+            percent, handler_name = choice
+            percent = int(percent)
+
+            choices[handler_name] = self.handlers[handler_name], percent
+            total += percent
+
+        if total > 100:
+            raise ValueError('The behavior total needs to be 100 or less')
+        elif total < 100:
+            missing = 100 - total
+            if 'normal' in choices:
+                choices['normal'][1] += missing
+            else:
+                choices['normal'] = normal, missing
+
+        for name, (handler, percent) in choices.items():
+            self.choices.extend(percent * [name])
+
+    def get_next_handler(self):
+        return random.choice(self.choices)
+
+
+class OnTheFlyProxy(DefaultProxy):
+
+    def set_next_handler(self, handler):
+        self.next_handler = self.handlers[handler]
+        self._logger.info('next handler changed to "%s"' % handler)

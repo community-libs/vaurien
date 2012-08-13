@@ -3,7 +3,7 @@ import argparse
 import sys
 import logging
 
-from vaurien.proxy import DoWeirdThingsPlease
+from vaurien.proxy import OnTheFlyProxy, RandomProxy
 from vaurien.config import load_into_settings, DEFAULT_SETTINGS
 from vaurien import __version__, logger
 
@@ -57,6 +57,12 @@ def main():
     parser.add_argument('--config', help='Configuration file', default=None)
     parser.add_argument('--version', action='store_true', default=False,
                         help='Displays version and exits.')
+    parser.add_argument('--http', action='store_true', default=False,
+                        help='Start a simple http server to control vaurien')
+    parser.add_argument('--http-host', default='localhost',
+                        help='Host of the http server, if any')
+    parser.add_argument('--http-port', default=8080,
+                        help='Port of the http server, if any')
 
     # get the values from the default config
     keys = DEFAULT_SETTINGS.keys()
@@ -112,11 +118,28 @@ def main():
     statsd = get_statsd_from_settings(settings.getsection('statsd'))
 
     # creating the proxy
-    proxy = DoWeirdThingsPlease(local=settings['vaurien.local'],
-                                 distant=settings['vaurien.distant'],
-                                 settings=settings, statsd=statsd,
-                                 logger=logger)
+    proxy_args = dict(local=settings['vaurien.local'],
+                      distant=settings['vaurien.distant'],
+                      settings=settings, statsd=statsd, logger=logger)
 
+    # per default, we want to randomize
+    proxy_class = RandomProxy
+
+    if args.http:
+        # if we are using the http server, then we want to use the OnTheFly
+        # proxy
+        proxy_class = OnTheFlyProxy
+        proxy = proxy_class(**proxy_args)
+        from vaurien.webserver import app
+        from gevent.wsgi import WSGIServer
+
+        setattr(app, 'proxy', proxy)
+        # app.run(host=args.http_host, port=args.http_port)
+        http_server = WSGIServer((args.http_host, args.http_port), app)
+        http_server.start()
+        logger.info('Started the HTTP server')
+    else:
+        proxy = proxy_class(**proxy_args)
     try:
         proxy.serve_forever()
     except KeyboardInterrupt:

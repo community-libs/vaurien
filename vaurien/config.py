@@ -183,6 +183,7 @@ class SettingsDict(dict):
 
         * setdefaults:  copy any unset settings from another dict
         * getsection:   return a dict of settings for just one subsection
+        * sections:     return a list of sections for the settings
 
     """
 
@@ -198,6 +199,16 @@ class SettingsDict(dict):
         for k, v in self.iteritems():
             new_items[k] = v
         return new_items
+
+    def sections(self):
+        """Return a list of sections for this dict"""
+        sections = []
+        for key in self.iterkeys():
+            if self.separator in key:
+                sec, _ = key.rsplit(self.separator, 1)
+                if sec not in sections:
+                    sections.append(sec)
+        return sections
 
     def getsection(self, section):
         """Get a dict for just one sub-section of the config.

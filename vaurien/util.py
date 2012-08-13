@@ -95,3 +95,26 @@ def parse_address(address):
     except ValueError:
         sys.exit('Expected HOST:PORT: %r' % address)
     return gethostbyname(hostname), port
+
+
+def get_handlers_from_config(settings, logger=None):
+    """Return a dict containing all the handlers that are defined in the
+    settings, in addition to all the handlers of vaurien
+    """
+    handlers = {}
+    if logger is None:
+        from vaurien import logger
+
+    for section in settings.sections():
+        if section.startswith('handler.'):
+            handler_name = section[len('handler.'):]
+
+            # have a look if we have a section named handler:{handler}
+            settings = settings.getsection('handler.%s' % handler_name)
+            handler_location = settings.get('callable', None)
+            if not handler_location:
+                logger.warning('callable not found for %s' % handler_name)
+                continue
+            handler = import_string(handler_location)
+            handlers[handler_name] = handler
+    return handlers
