@@ -137,7 +137,8 @@ def main():
         # app.run(host=args.http_host, port=args.http_port)
         http_server = WSGIServer((args.http_host, args.http_port), app)
         http_server.start()
-        logger.info('Started the HTTP server')
+        logger.info('Started the HTTP server at http://%s:%s'
+                    % (args.http_host, args.http_port))
     else:
         proxy = proxy_class(**proxy_args)
     try:

@@ -23,8 +23,10 @@ def update_renderer():
         try:
             app.proxy.set_next_handler(handler)
         except KeyError:
-            request.errors.add('headers', 'handler',
-                               "the '%s' handler does not exist" % handler)
+            request.errors.add('request', 'handler',
+                           'the "%s" handler does not exist.' % handler +
+                           ' Use one of the handlers defined in "handlers"',
+                           handlers=app.proxy.handlers.keys())
         return "ok"
     else:
         return app.proxy.get_next_handler()
@@ -47,12 +49,13 @@ class Errors(list):
         self.status = status
         super(Errors, self).__init__()
 
-    def add(self, location, name=None, description=None):
+    def add(self, location, name=None, description=None, **kw):
         """Registers a new error."""
         self.append(dict(
             location=location,
             name=name,
-            description=description))
+            description=description,
+            **kw))
 
 
 def add_errors(sender, **extra):
