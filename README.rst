@@ -1,7 +1,7 @@
 Vaurien
 #######
 
-THIS IS CURRENTLY BETA AND COULD KILL KITTENS. TAKE CARE.
+THIS IS CURRENTLY BETA AND WILL KILL KITTENS. TAKE CARE.
 
 The idea behind Vaurien is to have a TCP proxy which sometimes drops
 packets, sometimes delays requests and sometimes just work.
