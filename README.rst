@@ -75,3 +75,8 @@ has two resources that could be useful to you:
 
         $ curl http://localhost:8080/handlers -H "Content-Type: application/json"
         {"handlers": ["delay", "errors", "hang", "blackout", "normal"]}
+
+You can run the vaurien REST interface by specifying the HTTP flag to it, like
+this::
+
+    $ vaurien --http
