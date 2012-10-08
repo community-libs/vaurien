@@ -12,7 +12,8 @@ from vaurien.webserver import app
 
 
 _CMD = [sys.executable, '-m', 'vaurien.run',
-        '--distant', 'google.com:80']
+        '--distant', 'google.com:80',
+        '--http']
 
 
 class TestGoogle(unittest.TestCase):
@@ -27,5 +28,26 @@ class TestGoogle(unittest.TestCase):
 
     def test_proxy(self):
         proxies = {"http": "localhost:8000"}
+
+        # let's do a simple request first to make sure the proxy works
         res = requests.get("http://google.com", proxies=proxies)
         self.assertEqual(res.status_code, 200)
+
+        # now let's add a bit of havoc -
+        res = requests.post("http://localhost:8080/handler", data='errors')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.content, 'ok')
+
+        # oh look we broke it
+        self.assertRaises(requests.ConnectionError, requests.get,
+                          "http://google.com", proxies=proxies)
+
+        # let's unbreak it
+        res = requests.post("http://localhost:8080/handler", data='normal')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.content, 'ok')
+
+        # we should be back to normal
+        res = requests.get("http://google.com", proxies=proxies)
+        self.assertEqual(res.status_code, 200)
+
