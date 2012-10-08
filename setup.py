@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from vaurien import __version__
 
 
-install_requires = ['gevent', 'statsd-client']
+install_requires = ['gevent', 'statsd-client', 'requests']
 
 try:
     import argparse     # NOQA
