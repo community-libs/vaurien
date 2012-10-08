@@ -9,11 +9,14 @@ from gevent.wsgi import WSGIServer
 
 from vaurien.proxy import OnTheFlyProxy
 from vaurien.webserver import app
+from vaurien.client import Client
 
 
 _CMD = [sys.executable, '-m', 'vaurien.run',
         '--distant', 'google.com:80',
         '--http']
+
+_PROXY = 'http://localhost:8000'
 
 
 class TestGoogle(unittest.TestCase):
@@ -22,32 +25,21 @@ class TestGoogle(unittest.TestCase):
         time.sleep(.5)
         if self._run.poll():
             raise ValueError("Could not start the proxy")
+        self.client = Client()
 
     def tearDown(self):
         self._run.terminate()
 
     def test_proxy(self):
-        proxies = {"http": "localhost:8000"}
-
         # let's do a simple request first to make sure the proxy works
-        res = requests.get("http://google.com", proxies=proxies)
+        res = requests.get(_PROXY)
         self.assertEqual(res.status_code, 200)
 
-        # now let's add a bit of havoc -
-        res = requests.post("http://localhost:8080/handler", data='errors')
-        self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.content, 'ok')
-
-        # oh look we broke it
-        self.assertRaises(requests.ConnectionError, requests.get,
-                          "http://google.com", proxies=proxies)
-
-        # let's unbreak it
-        res = requests.post("http://localhost:8080/handler", data='normal')
-        self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.content, 'ok')
+        # now let's add a bit of havoc
+        with self.client.with_handler('errors'):
+            # oh look we broke it
+            self.assertRaises(requests.ConnectionError, requests.get, _PROXY)
 
         # we should be back to normal
-        res = requests.get("http://google.com", proxies=proxies)
+        res = requests.get(_PROXY)
         self.assertEqual(res.status_code, 200)
-

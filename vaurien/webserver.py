@@ -27,7 +27,7 @@ def update_renderer():
                                "the '%s' handler does not exist" % handler)
         return "ok"
     else:
-        return app.proxy.get_next_handler()
+        return app.proxy.get_next_handler().__name__
 
 
 @app.route('/handlers')
