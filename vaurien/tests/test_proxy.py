@@ -13,10 +13,11 @@ from vaurien.client import Client
 
 
 _CMD = [sys.executable, '-m', 'vaurien.run',
-        '--distant', 'google.com:80',
+        '--distant', 'localhost:8888',
         '--http']
-
 _PROXY = 'http://localhost:8000'
+_SERVER = [sys.executable, '-m', 'SimpleHTTPServer',
+           '8888']
 
 
 class TestGoogle(unittest.TestCase):
@@ -25,10 +26,17 @@ class TestGoogle(unittest.TestCase):
         time.sleep(.5)
         if self._run.poll():
             raise ValueError("Could not start the proxy")
+
+        self._web = subprocess.Popen(_SERVER)
+        time.sleep(.5)
+        if self._web.poll():
+            raise ValueError("Could not start the proxy")
+
         self.client = Client()
 
     def tearDown(self):
         self._run.terminate()
+        self._web.terminate()
 
     def test_proxy(self):
         # let's do a simple request first to make sure the proxy works
