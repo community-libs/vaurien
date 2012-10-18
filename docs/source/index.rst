@@ -37,6 +37,15 @@ You can use it in your functional tests or even on a real deployment
 through the command-line.
 
 
+Installing vaurien
+==================
+
+You can install vaurien directly from PyPI; the best way to do so is via
+`pip`::
+
+    $ pip install vaurien
+
+
 Using Vaurien from the command-line
 ===================================
 
@@ -176,6 +185,14 @@ You can then hook it by using the **callable** option::
     [handler:foobar]
     callable = path.to.the.callable
     foo=bar
+
+Code repository
+===============
+
+If you're interested to look at the code, it's there:
+https://github.com/mozilla-services/vaurien
+
+Don't hesitate to send us pull requests or to open issues!
 
 More documentation
 ==================
