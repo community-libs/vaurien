@@ -130,7 +130,7 @@ behaving as expected when it happens.
 Extending vaurien
 =================
 
-Vaurien comes with a handful of useful handlers, but you can create your own
+Vaurien comes with a handful of useful :ref:`handlers`, but you can create your own
 handlers and plug them in a configuration file.
 
 In fact that's the best way to create realistic issues: imagine that you
@@ -147,7 +147,7 @@ following signature::
 
 Where:
 
-- **source* and **dest** are the source and destination sockets.
+- **source** and **dest** are the source and destination sockets.
 - **to_backend** is a boolean that tels you if this is the communication to
   the proxied server or from it.
 - **name** is the name of the callable.
@@ -178,5 +178,6 @@ Contents:
    :maxdepth: 2
 
    apis
+   handlers
 
 
