@@ -124,7 +124,7 @@ In this test, the proxy is started and stopped before and after the
 test, and the Client class will let you drive its behavior.
 
 During the **with** block, the proxy will error out any call by using
-the *errors** hanlder, so you can verify that your application is
+the *errors* hanlder, so you can verify that your application is
 behaving as expected when it happens.
 
 
