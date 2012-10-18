@@ -51,7 +51,7 @@ def get_statsd_from_settings(settings):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Runs a mean TCP proxy.')
+    parser = argparse.ArgumentParser(description='Runs a Chaos TCP proxy.')
 
     # other arguments
     parser.add_argument('--config', help='Configuration file', default=None)
@@ -122,14 +122,11 @@ def main():
                       distant=settings['vaurien.distant'],
                       settings=settings, statsd=statsd, logger=logger)
 
-    # per default, we want to randomize
-    proxy_class = RandomProxy
 
     if args.http:
         # if we are using the http server, then we want to use the OnTheFly
         # proxy
-        proxy_class = OnTheFlyProxy
-        proxy = proxy_class(**proxy_args)
+        proxy = OnTheFlyProxy(**proxy_args)
         from vaurien.webserver import app
         from gevent.wsgi import WSGIServer
 
@@ -140,7 +137,9 @@ def main():
         logger.info('Started the HTTP server: http://%s:%s' %
                     (args.http_host, args.http_port))
     else:
-        proxy = proxy_class(**proxy_args)
+        # per default, we want to randomize
+        proxy = RandomProxy(**proxy_args)
+
     try:
         proxy.serve_forever()
     except KeyboardInterrupt:
