@@ -3,7 +3,7 @@ Welcome to Vaurien's documentation!
 
 *Vaurien, the Chaos TCP Proxy*
 
-Ever heard of the the `Chaos Monkey <http://www.codinghorror.com/blog/2011/04/working-with-the-chaos-monkey.html>`_ ?
+Ever heard of the `Chaos Monkey <http://www.codinghorror.com/blog/2011/04/working-with-the-chaos-monkey.html>`_ ?
 
 It's a project at Netflix to enhance the infrastructure tolerance. The Chaos Monkey
 will randomly shut down some servers or block some network connections, and the system
@@ -82,6 +82,9 @@ To activate it, use the --http option::
     $ vaurien --http
 
 By default the server runs on port **8080** while the proxy runs on **8000**
+
+Once it runs, you can call it using cURL or any HTTP client. See the
+:ref:`apis`.
 
 
 Using Vaurien from the code
