@@ -16,7 +16,8 @@ of you web applications there are many questions that often remain unanswered:
 - what happens if the MYSQL server is restarted ? are your connectors able
   to survive this event and continue to work properly afterwards ?
 
-- is your web application still work in degraded mode when Membase is down ?
+- is your web application still working in degraded mode when Membase is
+  down ?
 
 - are you sending back the right 503s when postgresql times out ?
 
@@ -24,8 +25,8 @@ of you web applications there are many questions that often remain unanswered:
 Of course you can -- and should try out all these scenarios on stage while
 your application is getting a realistic load.
 
-But testing these scenarios while you are building your code is a good idea,
-and having automated functional tests for this is preferable.
+But testing these scenarios while you are building your code is also a good
+practice, and having automated functional tests for this is preferable.
 
 That's where **Vaurien** is useful.
 
