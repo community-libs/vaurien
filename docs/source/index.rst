@@ -37,10 +37,10 @@ You can use it in your functional tests or even on a real deployment
 through the command-line.
 
 
-Installing vaurien
+Installing Vaurien
 ==================
 
-You can install vaurien directly from PyPI; the best way to do so is via
+You can install Vaurien directly from PyPI; the best way to do so is via
 `pip`::
 
     $ pip install vaurien
@@ -96,7 +96,7 @@ Once it runs, you can call it using cURL or any HTTP client. See the
 :ref:`apis`.
 
 
-Controlling vaurien in your code
+Controlling Vaurien in your code
 ================================
 
 If you want to run and drive a Vaurien proxy from your code, the project
@@ -136,7 +136,7 @@ the *errors* handler, so you can verify that your application is
 behaving as expected when it happens.
 
 
-Extending vaurien
+Extending Vaurien
 =================
 
 Vaurien comes with a handful of useful :ref:`handlers`, but you can create your own
