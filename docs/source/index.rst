@@ -109,13 +109,12 @@ you can write::
         def tearDown(self):
             stop_proxy(self.proxy_pid)
 
-
         def test_one(self):
             client = Client()
 
             with client.with_handler('errors'):
                 # do something...
-
+                pass
 
             # we're back to normal here
 
