@@ -8,6 +8,11 @@ APIs
 
    Returns the current handler in use.
 
+   Example::
+
+      $ curl http://localhost:8080/handler
+      normal
+
 
 **POST** **/handler**
 

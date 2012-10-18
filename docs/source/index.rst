@@ -3,7 +3,7 @@ Welcome to Vaurien's documentation!
 
 *Vaurien, the Chaos TCP Proxy*
 
-Ever heard of the `Chaos Monkey <http://www.codinghorror.com/blog/2011/04/working-with-the-chaos-monkey.html>`_ ?
+Ever heard of the `Chaos Monkey <http://www.codinghorror.com/blog/2011/04/working-with-the-chaos-monkey.html>`_?
 
 It's a project at Netflix to enhance the infrastructure tolerance. The Chaos Monkey
 will randomly shut down some servers or block some network connections, and the system
@@ -11,18 +11,18 @@ is supposed to survive to these events. It's a way to verify the high availabili
 and tolerance of the system.
 
 Besides a redundant infrastructure, if you think about reliability at the level
-of you web applications there are many questions that often remain unanswered:
+of your web applications there are many questions that often remain unanswered:
 
-- what happens if the MYSQL server is restarted ? are your connectors able
-  to survive this event and continue to work properly afterwards ?
+- What happens if the MYSQL server is restarted? Are your connectors able
+  to survive this event and continue to work properly afterwards?
 
-- is your web application still working in degraded mode when Membase is
-  down ?
+- Is your web application still working in degraded mode when Membase is
+  down?
 
-- are you sending back the right 503s when postgresql times out ?
+- Are you sending back the right 503s when postgresql times out ?
 
 
-Of course you can -- and should try out all these scenarios on stage while
+Of course you can -- and should -- try out all these scenarios on stage while
 your application is getting a realistic load.
 
 But testing these scenarios while you are building your code is also a good
@@ -74,10 +74,10 @@ Controlling Vaurien live
 Sometimes, it is useful to control how the proxy behaves, on a request to
 request basis.
 
-Vaurien provides an HTTP server with 3 APIs that can be used to control the proxy
-behavior.
+Vaurien provides an HTTP server with 3 APIs, which can be used to control the
+proxy behavior.
 
-To activate it, use the --http option::
+To activate it, use the `--http` option::
 
     $ vaurien --http
 
@@ -87,8 +87,8 @@ Once it runs, you can call it using cURL or any HTTP client. See the
 :ref:`apis`.
 
 
-Using Vaurien from the code
-===========================
+Controlling vaurien in your code
+================================
 
 If you want to run and drive a Vaurien proxy from your code, the project
 provides a few helpers for this.
@@ -122,8 +122,8 @@ you can write::
 In this test, the proxy is started and stopped before and after the
 test, and the Client class will let you drive its behavior.
 
-During the **with** block, the proxy will error out any call by using
-the *errors* hanlder, so you can verify that your application is
+Within the **with** block, the proxy will error out any call by using
+the *errors* handler, so you can verify that your application is
 behaving as expected when it happens.
 
 
@@ -155,9 +155,18 @@ Where:
 - **server** the server instance - it can be useful to look at the global
   settings for instance, and other utilities.
 
-
 *to_backend* will let you impact the behavior of the proxy when data is coming
 in **or** out of the proxy.
+
+Here is how the `delay` handler is specified, for instance::
+
+    def delay(source, dest, to_backend, name, settings, proxy):
+        if to_backend:
+            # a bit of delay before calling the backend
+            gevent.sleep(settings.get('sleep', 1))
+
+        dest.sendall(proxy.get_data(source))
+
 
 You can then hook it by using the **callable** option::
 
@@ -167,7 +176,6 @@ You can then hook it by using the **callable** option::
     [handler:foobar]
     callable = path.to.the.callable
     foo=bar
-
 
 More documentation
 ==================
@@ -179,5 +187,3 @@ Contents:
 
    apis
    handlers
-
-
