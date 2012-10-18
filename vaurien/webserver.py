@@ -21,13 +21,13 @@ def update_renderer():
     if request.method == 'POST':
         handler = request.data
         try:
-            app.proxy.set_next_handler(handler)
+            app.proxy.set_handler(handler)
         except KeyError:
             request.errors.add('headers', 'handler',
                                "the '%s' handler does not exist" % handler)
         return "ok"
     else:
-        return app.proxy.get_next_handler().__name__
+        return app.proxy.get_handler().__name__
 
 
 @app.route('/handlers')

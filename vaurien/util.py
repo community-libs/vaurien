@@ -1,4 +1,7 @@
 import sys
+import time
+import subprocess
+
 from gevent.socket import gethostbyname
 
 
@@ -118,3 +121,31 @@ def get_handlers_from_config(settings, logger=None):
             handler = import_string(handler_location)
             handlers[handler_name] = handler
     return handlers
+
+
+_PROXIES = {}
+
+
+def start_proxy(host='localhost', port=8888, http=True, warmup=2):
+    """Starts a proxy
+    """
+    host = '%s:%s' % (host, port)
+    cmd = [sys.executable, '-m', 'vaurien.run', '--distant', host]
+    if http:
+        cmd.append('--http')
+
+    proc = subprocess.Popen(cmd)
+    time.sleep(warmup)
+    if proc.poll():
+        raise ValueError("Could not start the proxy")
+
+    _PROXIES[proc.pid] = proc
+    return proc.pid
+
+
+def stop_proxy(pid):
+    if pid not in _PROXIES:
+        raise ValueError("Not found")
+
+    proc = _PROXIES.pop(pid)
+    proc.terminate()

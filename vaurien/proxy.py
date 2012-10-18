@@ -37,16 +37,16 @@ class DefaultProxy(StreamServer):
         self._logger = logger
         self.handlers = handlers
         self.handlers.update(get_handlers_from_config(self.settings, logger))
-        self.next_handler = normal
+        self.handler = normal
 
-    def get_next_handler(self):
-        return self.next_handler
+    def get_handler(self):
+        return self.handler
 
     def handle(self, source, address):
         source.setblocking(0)
         dest = create_connection(self.dest)
         dest.setblocking(0)
-        handler = self.get_next_handler()
+        handler = self.get_handler()
         handler_name = handler.__name__
         self.statsd_incr(handler_name)
         try:
@@ -132,13 +132,12 @@ class RandomProxy(DefaultProxy):
         for name, (handler, percent) in choices.items():
             self.choices.extend([self.handlers[name] for i in range(percent)])
 
-
-    def get_next_handler(self):
+    def get_handler(self):
         return random.choice(self.choices)
 
 
 class OnTheFlyProxy(DefaultProxy):
 
-    def set_next_handler(self, handler):
-        self.next_handler = self.handlers[handler]
+    def set_handler(self, handler):
+        self.handler = self.handlers[handler]
         self._logger.info('next handler changed to "%s"' % handler)

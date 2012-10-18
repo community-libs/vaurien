@@ -3,18 +3,11 @@ import requests
 import subprocess
 import sys
 import time
-import os
 
-from gevent.wsgi import WSGIServer
-
-from vaurien.proxy import OnTheFlyProxy
-from vaurien.webserver import app
 from vaurien.client import Client
+from vaurien.util import start_proxy, stop_proxy
 
 
-_CMD = [sys.executable, '-m', 'vaurien.run',
-        '--distant', 'localhost:8888',
-        '--http']
 _PROXY = 'http://localhost:8000'
 _SERVER = [sys.executable, '-m', 'SimpleHTTPServer',
            '8888']
@@ -22,11 +15,7 @@ _SERVER = [sys.executable, '-m', 'SimpleHTTPServer',
 
 class TestGoogle(unittest.TestCase):
     def setUp(self):
-        self._run = subprocess.Popen(_CMD)
-        time.sleep(.5)
-        if self._run.poll():
-            raise ValueError("Could not start the proxy")
-
+        self._proxy_pid = start_proxy()
         self._web = subprocess.Popen(_SERVER)
         time.sleep(.5)
         if self._web.poll():
@@ -35,7 +24,7 @@ class TestGoogle(unittest.TestCase):
         self.client = Client()
 
     def tearDown(self):
-        self._run.terminate()
+        stop_proxy(self._proxy_pid)
         self._web.terminate()
 
     def test_proxy(self):

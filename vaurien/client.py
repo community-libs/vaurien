@@ -9,12 +9,12 @@ class Client(object):
         self.scheme = scheme
         self.handler_url = '%s://%s:%d/handler' % (scheme, host, port)
 
-    def set_next_handler(self, handler):
+    def set_handler(self, handler):
         res = requests.post(self.handler_url, data=handler)
         if res.status_code != 200 or res.content != 'ok':
             raise ValueError(res.content)
 
-    def get_next_handler(self):
+    def get_handler(self):
         res = requests.get(self.handler_url)
         if res.status_code != 200:
             raise ValueError(res.content)
@@ -22,9 +22,9 @@ class Client(object):
 
     @contextmanager
     def with_handler(self, handler):
-        current = self.get_next_handler()
-        self.set_next_handler(handler)
+        current = self.get_handler()
+        self.set_handler(handler)
         try:
             yield
         finally:
-            self.set_next_handler(current)
+            self.set_handler(current)
