@@ -17,16 +17,12 @@ class DefaultProxy(StreamServer):
                  settings=None, statsd=None, logger=None, **kwargs):
 
         if handlers is None:
-            handlers = {}
-            for handler in default_handlers:
-                handlers[handler.__name__] = handler
-
-        logger.info('Starting the mean proxy server')
+            handlers = default_handlers
+        logger.info('Starting the Chaos TCP Server')
         logger.info('%s => %s' % (local, distant))
 
         local = parse_address(local)
         dest = parse_address(distant)
-
         StreamServer.__init__(self, local, **kwargs)
 
         self.dest = dest
@@ -38,16 +34,16 @@ class DefaultProxy(StreamServer):
         self.handlers = handlers
         self.handlers.update(get_handlers_from_config(self.settings, logger))
         self.handler = normal
+        self.handler_name = 'normal'
 
     def get_handler(self):
-        return self.handler
+        return self.handler, self.handler_name
 
     def handle(self, source, address):
         source.setblocking(0)
         dest = create_connection(self.dest)
         dest.setblocking(0)
-        handler = self.get_handler()
-        handler_name = handler.__name__
+        handler, handler_name = self.get_handler()
         self.statsd_incr(handler_name)
         try:
             back = gevent.spawn(self.weirdify, handler, handler_name, source,
@@ -100,7 +96,6 @@ class RandomProxy(DefaultProxy):
 
     def __init__(self, *args, **kwargs):
         super(RandomProxy, self).__init__(*args, **kwargs)
-
         self.choices = []
         self.initialize_choices()
 
@@ -133,7 +128,7 @@ class RandomProxy(DefaultProxy):
             self.choices.extend([self.handlers[name] for i in range(percent)])
 
     def get_handler(self):
-        return random.choice(self.choices)
+        return random.choice(self.choices.items())
 
 
 class OnTheFlyProxy(DefaultProxy):
