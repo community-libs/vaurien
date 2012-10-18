@@ -3,7 +3,7 @@ Welcome to Vaurien's documentation!
 
 *Vaurien, the Chaos TCP Proxy*
 
-Ever heard of the the `Chaos Monkey <http://www.codinghorror.com/blog/2011/04/working-with-the-chaos-monkey.html>` ?
+Ever heard of the the `Chaos Monkey <http://www.codinghorror.com/blog/2011/04/working-with-the-chaos-monkey.html>`_ ?
 
 It's a project at Netflix to enhance the infrastructure tolerance. The Chaos Monkey
 will randomly shut down some servers or block some network connections, and the system
