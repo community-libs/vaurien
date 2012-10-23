@@ -4,5 +4,9 @@ __version__ = '0.1'
 logger = logging.getLogger('vaurien')
 
 # shortcuts
-from vaurien.client import Client                   # NOQA
-from vaurien.util import start_proxy, stop_proxy    # NOQA
+try:
+    from vaurien.client import Client                   # NOQA
+    from vaurien.util import start_proxy, stop_proxy    # NOQA
+except ImportError:
+    # that may be at installation time
+    Client = start_proxy = stop_proxy = None
