@@ -61,7 +61,7 @@ def main():
                         help='Start a simple http server to control vaurien')
     parser.add_argument('--http-host', default='localhost',
                         help='Host of the http server, if any')
-    parser.add_argument('--http-port', default=8080,
+    parser.add_argument('--http-port', default='8080',
                         help='Port of the http server, if any')
 
     # get the values from the default config
@@ -132,7 +132,7 @@ def main():
 
         setattr(app, 'proxy', proxy)
         # app.run(host=args.http_host, port=args.http_port)
-        http_server = WSGIServer((args.http_host, args.http_port), app)
+        http_server = WSGIServer((args.http_host, int(args.http_port)), app)
         http_server.start()
         logger.info('Started the HTTP server: http://%s:%s' %
                     (args.http_host, args.http_port))
