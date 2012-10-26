@@ -125,10 +125,11 @@ class RandomProxy(DefaultProxy):
                 choices['normal'] = normal, missing
 
         for name, (handler, percent) in choices.items():
-            self.choices.extend([self.handlers[name] for i in range(percent)])
+            self.choices.extend(
+                [(self.handlers[name], name) for i in range(percent)])
 
     def get_handler(self):
-        return random.choice(self.choices.items())
+        return random.choice(self.choices)
 
 
 class OnTheFlyProxy(DefaultProxy):
