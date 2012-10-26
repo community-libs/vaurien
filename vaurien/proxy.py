@@ -70,8 +70,7 @@ class DefaultProxy(StreamServer):
         """
         self._logger.debug('starting weirdify %s' % to_backend)
         try:
-            settings = self.settings.getsection('handlers.%s' %
-                                                    handler_name)
+            settings = self.settings.getsection('handlers.%s' % handler_name)
             handler(source=source, dest=dest, to_backend=to_backend,
                     name=handler_name, proxy=self, settings=settings)
         finally:

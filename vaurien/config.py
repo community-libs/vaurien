@@ -67,7 +67,7 @@ class Config(RawConfigParser):
         # let's expand it now if needed
         defaults = self.defaults()
 
-        if'extends' in defaults:
+        if 'extends' in defaults:
             extends = defaults['extends']
             if not isinstance(extends, list):
                 extends = [extends]
