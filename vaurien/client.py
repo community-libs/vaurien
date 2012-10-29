@@ -56,7 +56,7 @@ def main():
     host, port = parts.netloc.split(':', -1)
     client = Client(host, port, scheme)
     if args.action == 'list-handlers':
-        print client.list_handlers()
+        print ', '.join(client.list_handlers())
     elif args.action == 'set-handler':
         try:
             client.set_handler(args.handler)
