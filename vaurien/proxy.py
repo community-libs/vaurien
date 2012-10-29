@@ -135,4 +135,5 @@ class OnTheFlyProxy(DefaultProxy):
 
     def set_handler(self, handler):
         self.handler = self.handlers[handler]
-        self._logger.info('next handler changed to "%s"' % handler)
+        self.handler_name = handler
+        self._logger.info('Handler changed to "%s"' % handler)
