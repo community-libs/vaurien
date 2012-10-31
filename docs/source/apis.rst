@@ -31,7 +31,7 @@ APIs
    Example::
 
       $ curl http://localhost:8080/handlers
-      {"handlers": ["delay", "errors", "hang", "blackout", "normal"]}
+      {"handlers": ["delay", "error", "hang", "blackout", "dummy"]}
 
 
 Command line
@@ -44,7 +44,7 @@ With it, you can either list the available handlers, get the current one or set
 the handler to another one. Here is a quick demo::
 
     $ vaurienctl list-handlers
-    delay, errors, hang, blackout, normal
+    delay, error, hang, blackout, dummy
     $ vaurienctl set-handler blackout
     Handler changed to "blackout"
     $ vaurienctl get-handler

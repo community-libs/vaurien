@@ -9,7 +9,7 @@ from gevent.server import StreamServer
 from gevent.socket import create_connection
 
 from vaurien.util import parse_address, get_handlers_from_config
-from vaurien.handlers import handlers as default_handlers, normal
+from vaurien.handlers import handlers as default_handlers
 
 
 class DefaultProxy(StreamServer):
@@ -34,8 +34,8 @@ class DefaultProxy(StreamServer):
         self._logger = logger
         self.handlers = handlers
         self.handlers.update(get_handlers_from_config(self.settings, logger))
-        self.handler = normal
-        self.handler_name = 'normal'
+        self.handler = default_handlers['dummy']
+        self.handler_name = 'dummy'
 
     def get_handler(self):
         return self.handler, self.handler_name
@@ -133,10 +133,10 @@ class RandomProxy(DefaultProxy):
             raise ValueError('The behavior total needs to be 100 or less')
         elif total < 100:
             missing = 100 - total
-            if 'normal' in choices:
-                choices['normal'][1] += missing
+            if 'dummy' in choices:
+                choices['dummy'][1] += missing
             else:
-                choices['normal'] = normal, missing
+                choices['dummy'] = default_handlers['dummy'], missing
 
         for name, (handler, percent) in choices.items():
             self.choices.extend(

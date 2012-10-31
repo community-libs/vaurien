@@ -121,7 +121,7 @@ you can write::
         def test_one(self):
             client = Client()
 
-            with client.with_handler('errors'):
+            with client.with_handler('error'):
                 # do something...
                 pass
 

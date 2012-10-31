@@ -33,7 +33,7 @@ class TestGoogle(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
 
         # now let's add a bit of havoc
-        with self.client.with_handler('errors'):
+        with self.client.with_handler('blackout'):
             # oh look we broke it
             self.assertRaises(requests.ConnectionError, requests.get, _PROXY)
 
