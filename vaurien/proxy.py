@@ -3,6 +3,7 @@ import errno
 import socket
 import gevent
 import random
+from select import select
 
 from gevent.server import StreamServer
 from gevent.socket import create_connection
@@ -45,16 +46,30 @@ class DefaultProxy(StreamServer):
         dest.setblocking(0)
         handler, handler_name = self.get_handler()
         self.statsd_incr(handler_name)
-        try:
-            back = gevent.spawn(self.weirdify, handler, handler_name, source,
-                                dest, True)
-            forth = gevent.spawn(self.weirdify, handler, handler_name, dest,
-                                 source, False)
-            back.join()
-            forth.join()
-        finally:
-            source.close()
-            dest.close()
+
+        while True:
+            try:
+                rlist, __, __ = select([source, dest], [], [], 30)
+            except socket.error, err:
+                rlist = []
+
+            if rlist == []:
+                break
+
+            greens = []
+            for sock in rlist:
+                if sock == source:
+                    greens.append(gevent.spawn(self.weirdify, handler, handler_name,
+                                               source, dest, True))
+                else:
+                    greens.append(gevent.spawn(self.weirdify, handler, handler_name,
+                                               dest, source, False))
+
+            for green in greens:
+                green.join()
+
+        source.close()
+        dest.close()
 
     def statsd_incr(self, counter):
         if self._statsd:

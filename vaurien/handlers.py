@@ -4,8 +4,12 @@ import gevent
 def normal(source, dest, to_backend, name, settings, proxy):
     """Dummy handler
     """
-    request = proxy.get_data(source)
-    dest.sendall(request)
+    data = source.recv(1024)
+    if data == '':
+        source.close()
+        return
+
+    dest.sendall(data)
 
 
 def delay(source, dest, to_backend, name, settings, proxy):
