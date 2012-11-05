@@ -144,7 +144,12 @@ class RandomProxy(DefaultProxy):
 
 class OnTheFlyProxy(DefaultProxy):
 
-    def set_handler(self, handler):
-        self.handler = self.handlers[handler]
-        self.handler_name = handler
-        self._logger.info('Handler changed to "%s"' % handler)
+    def set_handler(self, **options):
+        handler_name = options.pop('name')
+        self.handler = self.handlers[handler_name]
+        self.handler_name = handler_name
+
+        for name, value in options.items():
+            self.handler.settings[name] = value
+
+        self._logger.info('Handler changed to "%s"' % handler_name)

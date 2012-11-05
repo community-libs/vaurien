@@ -19,9 +19,10 @@ app = Flask(__name__)
 @app.route('/handler', methods=['POST', 'GET'])
 def update_renderer():
     if request.method == 'POST':
-        handler = request.data
+        data = json.loads(request.data)
+
         try:
-            app.proxy.set_handler(handler)
+            app.proxy.set_handler(**data)
         except KeyError:
             request.errors.add('headers', 'handler',
                                "the '%s' handler does not exist" % handler)

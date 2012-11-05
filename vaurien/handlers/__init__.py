@@ -1,4 +1,5 @@
 import os
+import copy
 import gevent
 
 
@@ -12,7 +13,7 @@ class BaseHandler(object):
         if settings is None:
             self.settings = {}
         else:
-            self.settings = settings
+            self.settings = copy.copy(settings)
 
     def update_settings(self, settings):
         self.settings.update(settings)

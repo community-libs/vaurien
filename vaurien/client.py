@@ -1,5 +1,7 @@
+import json
 from contextlib import contextmanager
 from urlparse import urlparse
+
 import requests
 
 
@@ -12,8 +14,9 @@ class Client(object):
         self.handler_url = self.root_url + '/handler'
         self.list_handlers_url = self.root_url + '/handlers'
 
-    def set_handler(self, handler):
-        res = requests.post(self.handler_url, data=handler)
+    def set_handler(self, handler, **options):
+        options['name'] = handler
+        res = requests.post(self.handler_url, data=json.dumps(options))
         if res.status_code != 200 or res.content != 'ok':
             raise ValueError(res.content)
 
@@ -30,9 +33,9 @@ class Client(object):
         return res.json['handlers']
 
     @contextmanager
-    def with_handler(self, handler):
+    def with_handler(self, handler, **options):
         current = self.get_handler()
-        self.set_handler(handler)
+        self.set_handler(handler, **options)
         try:
             yield
         finally:
