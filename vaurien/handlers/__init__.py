@@ -39,7 +39,10 @@ class BaseHandler(object):
 
 
 class Dummy(BaseHandler):
-    """Dummy handler
+    """Dummy handler.
+
+    Every incoming data is passed to the backend with no alteration,
+    and vice-versa.
     """
     name = 'dummy'
     options = {}
@@ -53,6 +56,8 @@ class Dummy(BaseHandler):
 
 class Delay(BaseHandler):
     """Adds a delay before the backend is called.
+
+    The delay can happen *after* or *before* the backend is called.
     """
     name = 'delay'
     options = {'sleep': ("Delay in seconds", int, 1),
@@ -78,7 +83,14 @@ class Delay(BaseHandler):
 
 
 class Error(Dummy):
-    """Reads the packets that have been sent then throws errors on the socket.
+    """Reads the packets that have been sent then send random data in the socket.
+
+    The *inject* option can be used to inject data within valid data received
+    from the backend. The Warmup option can be used to deactivate the random
+    data injection for a number of calls. This is useful if you need the
+    communication to settle in some speficic protocols before the ramdom
+    data is injected.
+
     """
     name = 'error'
     options = {'inject': ("Inject errors inside valid data", bool, False),
@@ -117,12 +129,14 @@ class Error(Dummy):
 
 
 class Hang(BaseHandler):
+    """Reads the packets that have been sent then hangs.
+
+    Acts like a *pdb.set_trace()* you'd forgot in your code ;)
+    """
     name = 'hang'
     options = {}
 
     def ___call__(self, client_sock, backend_sock, to_backend):
-        """Reads the packets that have been sent then hangs.
-        """
         # consume the socket and hang
         data = self._get_data(client_sock, backend_sock, to_backend)
         while data:
@@ -133,13 +147,14 @@ class Hang(BaseHandler):
 
 
 class Blackout(BaseHandler):
+    """Just closes the client socket on every call.
+    """
     name = 'hang'
     options = {}
 
     def __call__(self, client_sock, backend_sock, to_backend):
         """Don't do anything -- the sockets get closed
         """
-        client_sock.close()
         client_sock.close()
 
 
