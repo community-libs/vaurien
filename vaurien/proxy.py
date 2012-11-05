@@ -40,16 +40,20 @@ class DefaultProxy(StreamServer):
     def get_handler(self):
         return self.handler, self.handler_name
 
-    def handle(self, source, address):
-        source.setblocking(0)
-        dest = create_connection(self.dest)
-        dest.setblocking(0)
+    def handle(self, client_sock, address):
+        client_sock.setblocking(0)
+        backend_sock = create_connection(self.dest)
+        backend_sock.setblocking(0)
+
         handler, handler_name = self.get_handler()
+        handler.proxy = self
+
         self.statsd_incr(handler_name)
 
         while True:
             try:
-                rlist, __, __ = select([source, dest], [], [], 30)
+                rlist, __, __ = select([client_sock, backend_sock], [], [],
+                                       30)
             except socket.error, err:
                 rlist = []
 
@@ -57,19 +61,18 @@ class DefaultProxy(StreamServer):
                 break
 
             greens = []
+
             for sock in rlist:
-                if sock == source:
-                    greens.append(gevent.spawn(self.weirdify, handler, handler_name,
-                                               source, dest, True))
-                else:
-                    greens.append(gevent.spawn(self.weirdify, handler, handler_name,
-                                               dest, source, False))
+                green = gevent.spawn(self.weirdify, handler, client_sock,
+                                     backend_sock, sock is not backend_sock,
+                                     handler_name)
+                greens.append(green)
 
             for green in greens:
                 green.join()
 
-        source.close()
-        dest.close()
+        client_sock.close()
+        backend_sock.close()
 
     def statsd_incr(self, counter):
         if self._statsd:
@@ -77,7 +80,8 @@ class DefaultProxy(StreamServer):
         elif self._logger:
             self._logger.info(counter)
 
-    def weirdify(self, handler, handler_name, source, dest, to_backend):
+    def weirdify(self, handler, client_sock, backend_sock, to_backend,
+                 handler_name):
         """This is where all the magic happens.
 
         Depending the configuration, we will chose to either drop packets,
@@ -87,25 +91,10 @@ class DefaultProxy(StreamServer):
         try:
             settings = self.settings.getsection('handlers.%s' % handler_name)
             handler.update_settings(settings)
-
-            handler(source=source, dest=dest, to_backend=to_backend,
-                    name=handler_name, proxy=self)
+            handler(client_sock=client_sock, backend_sock=backend_sock,
+                    to_backend=to_backend)
         finally:
             self._logger.debug('exiting weirdify %s' % to_backend)
-
-    def get_data(self, source, delay=.2):
-        bufsize = int(self.settings['vaurien.bufsize'])
-        data = ''
-        start = time.time()
-
-        while time.time() - start < delay:
-            try:
-                data += source.recv(bufsize)
-            except socket.error, err:
-                if err.args[0] == errno.EWOULDBLOCK:
-                    pass
-
-        return data
 
 
 class RandomProxy(DefaultProxy):
