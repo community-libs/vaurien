@@ -18,9 +18,6 @@ Vaurien provides a collections of handlers.
 def generate_handlers(app):
     path = os.path.join(app.srcdir, 'handlers')
     ext = app.config['source_suffix']
-    if not os.path.exists(path):
-        os.makedirs(path)
-
     filename = os.path.join(app.srcdir, "handlers%s" % ext)
     items = handlers.items()
     items.sort()
@@ -32,7 +29,6 @@ def generate_handlers(app):
             doc.write(name + '\n')
             doc.write('-' * len(name) + '\n\n')
 
-            import pdb; pdb.set_trace()
             if klass.__doc__ is not None:
                 text = klass.__doc__.replace('\n    ', '\n')
                 doc.write(text + '\n')
