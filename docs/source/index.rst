@@ -77,6 +77,8 @@ also create a *ini* file for this::
 Each behavior applied on the request or response going through Vaurien
 is called a **handler**, and the ini file gets one section per handler.
 
+You can find a descriptions of all built-in handlers here: :ref:`handlers`.
+
 
 Controlling Vaurien live
 ========================
