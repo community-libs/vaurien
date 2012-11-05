@@ -94,7 +94,6 @@ class Error(Dummy):
 
         if self.option('inject'):
             if not to_backend:      # back to the client
-                print 'sending crap to the client'
                 middle = len(data) / 2
                 dest.sendall(data[:middle] + os.urandom(100) + data[middle:])
             else:                   # sending the data tp the backend
@@ -102,11 +101,11 @@ class Error(Dummy):
                 dest.sendall(data)
 
         else:
-            if to_backend:
+            if not to_backend:
                 # XXX find how to handle errors (which errors should we send)
                 # depends on the protocol
                 dest.sendall(os.urandom(1000))
-            else:                   # sending the data tp the backend
+            else:          # sending the data tp the backend
                 dest.sendall(data)
 
 
