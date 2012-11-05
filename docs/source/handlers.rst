@@ -9,13 +9,15 @@ Vaurien provides a collections of handlers.
 blackout
 --------
 
-No documentation. Boooo!
+Just closes the client socket on every call.
 
 delay
 -----
 
 Adds a delay before the backend is called.
-    
+
+    The delay can happen *after* or *before* the backend is called.
+
 
 Options:
 
@@ -25,24 +27,4 @@ Options:
 
 dummy
 -----
-
-Dummy handler
-    
-error
------
-
-Reads the packets that have been sent then throws errors on the socket.
-    
-
-Options:
-
-- **inject**: Inject errors inside valid data (bool, default: False)
-- **warmup**: Number of calls before erroring out (int, default: 0)
-
-
-hang
-----
-
-No documentation. Boooo!
-
 

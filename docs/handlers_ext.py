@@ -1,4 +1,5 @@
 import os
+
 from vaurien.handlers import handlers
 
 
@@ -31,8 +32,10 @@ def generate_handlers(app):
             doc.write(name + '\n')
             doc.write('-' * len(name) + '\n\n')
 
+            import pdb; pdb.set_trace()
             if klass.__doc__ is not None:
-                doc.write(klass.__doc__ + '\n')
+                text = klass.__doc__.replace('\n    ', '\n')
+                doc.write(text + '\n')
             else:
                 doc.write('No documentation. Boooo!\n\n')
 
