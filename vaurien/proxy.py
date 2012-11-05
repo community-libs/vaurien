@@ -86,8 +86,10 @@ class DefaultProxy(StreamServer):
         self._logger.debug('starting weirdify %s' % to_backend)
         try:
             settings = self.settings.getsection('handlers.%s' % handler_name)
+            handler.update_settings(settings)
+
             handler(source=source, dest=dest, to_backend=to_backend,
-                    name=handler_name, proxy=self, settings=settings)
+                    name=handler_name, proxy=self)
         finally:
             self._logger.debug('exiting weirdify %s' % to_backend)
 
@@ -125,6 +127,11 @@ class RandomProxy(DefaultProxy):
 
             percent, handler_name = choice
             percent = int(percent)
+            if handler_name not in self.handlers:
+                choices = self.handlers.keys()
+                msg = "%r is an unknown handler. Pick one of: %s."
+                raise ValueError(msg % (handler_name,
+                    ', '.join(['%r' % choice for choice in choices])))
 
             choices[handler_name] = self.handlers[handler_name], percent
             total += percent

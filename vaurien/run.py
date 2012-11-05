@@ -81,7 +81,7 @@ def main():
     parser.add_argument('--log-output', dest='logoutput', default='-',
             help="log output")
 
-    args = parser.parse_args()
+    args, remaining = parser.parse_known_args()
 
     if args.version:
         print(__version__)
@@ -100,7 +100,7 @@ def main():
             print(e)
             sys.exit(1)
 
-    # and finally overwrite with the commandline arguments
+    # overwrite with the commandline arguments
     for key in settings.keys():
         prefix = ''
         if key.startswith('vaurien'):
@@ -114,6 +114,14 @@ def main():
 
         if value is not None:
             settings[prefix + key] = value
+
+    # inject custom handlers options
+    for option in remaining:
+        if not option.startswith('--handlers.'):
+            continue
+        option = option[len('--'):]
+        option = option.split('=', 1)
+        settings[option[0]] = option[1]
 
     statsd = get_statsd_from_settings(settings.getsection('statsd'))
 

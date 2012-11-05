@@ -264,8 +264,7 @@ DEFAULT_SETTINGS = SettingsDict({
         # default ratios
         'vaurien.local': 'localhost:8000',
         'vaurien.distant': 'localhost:80',
-        'vaurien.sleep_delay': 2,
-        'vaurien.behavior': '100:normal',
+        'vaurien.behavior': '100:dummy',
         'vaurien.bufsize': 1024,
 
         # stats config
