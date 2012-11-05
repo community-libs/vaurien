@@ -48,7 +48,7 @@ The key is the option name and the value is a 3-tuple providing:
 **every option is optional and need a default value**
 
 Full handler example
-====================
+--------------------
 
 Here is how the `delay` handler is specified::
 
@@ -82,7 +82,7 @@ Here is how the `delay` handler is specified::
 
 
 Using handlers
-==============
+--------------
 
 Once the handler is ready, you can point it to Vaurien
 by providing its fully qualified name - e.g. the class name prefixed
