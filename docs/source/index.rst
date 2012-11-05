@@ -57,9 +57,13 @@ Let's say you want to add a delay for 20% of the requests done on google.com::
 
 
 Vaurien will stream all the traffic to google.com but will add delays 20% of the
-time.
+time. You can pass options to the handler using *--handlers.NAME.OPTION* options::
 
-You can also create a *ini* file for this::
+    $ vaurien --local localhost:8000 --distant google.com:80 --behavior 20:delay \
+        --handlers.delay.sleep 2
+
+Passing all options through the command-line can be tedious, so you can
+also create a *ini* file for this::
 
     [vaurien]
     distant = google.com:80
@@ -70,21 +74,18 @@ You can also create a *ini* file for this::
     sleep = 2
 
 
-And of course you can tweak the behavior of the proxy. Here, we're defining
-that the delay will last for 2 seconds.
-
 Each behavior applied on the request or response going through Vaurien
-is called a **handler**.
+is called a **handler**, and the ini file gets one section per handler.
 
 
 Controlling Vaurien live
 ========================
 
-Sometimes, it is useful to control how the proxy behaves, on a request to
-request basis.
+Sometimes, it is useful to control live the proxy, so you can change its
+behavior live between client calls.
 
-Vaurien provides an HTTP server with 3 APIs, which can be used to control the
-proxy behavior.
+Vaurien provides an HTTP server with a few APIs, which can be used to control
+the proxy.
 
 To activate it, use the `--http` option::
 
@@ -120,8 +121,9 @@ you can write::
 
         def test_one(self):
             client = Client()
+            options = {'inject': True}
 
-            with client.with_handler('error'):
+            with client.with_handler('error', **options):
                 # do something...
                 pass
 
@@ -142,49 +144,28 @@ Extending Vaurien
 Vaurien comes with a handful of useful :ref:`handlers`, but you can create your own
 handlers and plug them in a configuration file.
 
-In fact that's the best way to create realistic issues: imagine that you
+In fact that's the best way to create realistic issues. Imagine that you
 have a very specific type of error on your LDAP server everytime your
 infrastructure is under heavy load. You can reproduce this issue in your
 handler and make sure your web application behaves as it should.
 
-Creating new handlers is done by implementing a callable with the
-following signature::
+Creating new handlers is done by implementing a class with a specific signature.
 
-    def super_callable(source, dest, to_backend, name, settings, server):
-        pass
+You can inherit from the base class Vaurien provides and just implement the
+**__call__** method::
 
+    from vaurien.handlers import BaseHandler
 
-Where:
+    class MySuperHandler(BaseHandler):
 
-- **source** and **dest** are the source and destination sockets.
-- **to_backend** is a boolean that tels you if this is the communication to
-  the proxied server or from it.
-- **name** is the name of the callable.
-- **settings** the settings for *this* callable
-- **server** the server instance - it can be useful to look at the global
-  settings for instance, and other utilities.
+        name = 'super'
+        options = {}
 
-*to_backend* will let you impact the behavior of the proxy when data is coming
-in **or** out of the proxy.
+        def __call__(self, client_sock, backend_sock, to_backend):
+            # do something here
 
-Here is how the `delay` handler is specified, for instance::
+More about this in :ref:`extending`.
 
-    def delay(source, dest, to_backend, name, settings, proxy):
-        if to_backend:
-            # a bit of delay before calling the backend
-            gevent.sleep(settings.get('sleep', 1))
-
-        dest.sendall(proxy.get_data(source))
-
-
-You can then hook it by using the **callable** option::
-
-    [vaurien]
-    behavior = 20:foobar
-
-    [handler:foobar]
-    callable = path.to.the.callable
-    foo=bar
 
 Code repository
 ===============

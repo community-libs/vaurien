@@ -47,11 +47,11 @@ class Dummy(BaseHandler):
     def __call__(self, client_sock, backend_sock, to_backend):
         data = self._get_data(client_sock, backend_sock, to_backend)
         if data:
-            dest = to_backend and backend_sock  or client_sock
+            dest = to_backend and backend_sock or client_sock
             dest.sendall(data)
 
 
-class Delay(Dummy):
+class Delay(BaseHandler):
     """Adds a delay before the backend is called.
     """
     name = 'delay'
@@ -64,11 +64,17 @@ class Delay(Dummy):
         before = to_backend and self.options('before')
         after = not to_backend and not self.options('before')
 
-        if before or after:
+        if before:
             gevent.sleep(self.options('sleep'))
 
-        super(Delay, self)(client_sock, backend_sock, to_backend)
+        data = self._get_data(client_sock, backend_sock, to_backend)
 
+        if after:
+            gevent.sleep(self.options('sleep'))
+
+        if data:
+            dest = to_backend and backend_sock or client_sock
+            dest.sendall(data)
 
 
 class Error(Dummy):
