@@ -19,16 +19,16 @@ You can inherit from the base class Vaurien provides and just implement the
             # do something here
 
 
-Vaurien can use this proxy and call it everytime data is being seen on one hand
+Vaurien can use this handler and call it everytime data is being seen on one hand
 or the other.
 
 Where:
 
-- **name** is the name under which your backend is known
-- **options** is a mappping containing your handler options
-- **client_sock** is the socket opened with the client
-- **backend_sock** is the socket opened with the backend server
-- **to_backend** is a boolean giving the direction of the call. If True
+- **name** - the name under which your backend is known
+- **options** - a mapping containing your handler options
+- **client_sock** - the socket opened with the client
+- **backend_sock** - the socket opened with the backend server
+- **to_backend** - a boolean giving the direction of the call. If True
   it means some data is available in the client socket, that is supposed
   to go to the backend. If False, it means data is available on the backend
   socket and should be tramsmitted back to the client.
@@ -41,10 +41,11 @@ A handler instance is initialized with two values:
 For the handler options, each option is defined in the **options** mapping.
 The key is the option name and the value is a 3-tuple providing:
 
-- a descrption
+- a description
 - a type
 - a default value
 
+**every option is optional and need a default value**
 
 Full handler example
 ====================
