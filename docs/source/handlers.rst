@@ -4,12 +4,45 @@
 Handlers
 ========
 
-Vaurien provides a collections of handlers:
+Vaurien provides a collections of handlers.
 
-- **normal**: A transparent proxy, which doesn't modify at all the requests and
-  responses
-- **delay**: Adds a delay *before* the backend is called
-- **errors**: Reads the packets that have been sent, then throws errors on
-  the socket.
-- **hang**: Reads the packets that have been sent, then hangs.
-- **blackout**: Don't do anything -- the sockets get closed
+blackout
+--------
+
+No documentation. Boooo!
+
+delay
+-----
+
+Adds a delay before the backend is called.
+    
+
+Options:
+
+- **before**: If True adds before the backend is called. Otherwise after (bool, default: True)
+- **sleep**: Delay in seconds (int, default: 1)
+
+
+dummy
+-----
+
+Dummy handler
+    
+error
+-----
+
+Reads the packets that have been sent then throws errors on the socket.
+    
+
+Options:
+
+- **inject**: Inject errors inside valid data (bool, default: False)
+- **warmup**: Number of calls before erroring out (int, default: 0)
+
+
+hang
+----
+
+No documentation. Boooo!
+
+
