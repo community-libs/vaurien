@@ -126,13 +126,20 @@ def get_handlers_from_config(settings, logger=None):
 _PROXIES = {}
 
 
-def start_proxy(host='localhost', port=8888, http=True, warmup=2):
+def start_proxy(proxy_host='localhost', proxy_port=8000,
+                backend_host='localhost', backend_port=8888,
+                http=True, warmup=2,
+                http_host='localhost', http_port=8080):
     """Starts a proxy
     """
-    host = '%s:%s' % (host, port)
-    cmd = [sys.executable, '-m', 'vaurien.run', '--distant', host]
+    local = '%s:%d' % (proxy_host, proxy_port)
+    distant = '%s:%d' % (backend_host, backend_port)
+
+    cmd = [sys.executable, '-m', 'vaurien.run', '--distant', distant,
+           '--local', local, '--log-level', 'error']
     if http:
-        cmd.append('--http')
+        cmd.extend(['--http', '--http-host', http_host,
+                    '--http-port', str(http_port)])
 
     proc = subprocess.Popen(cmd)
     time.sleep(warmup)
@@ -146,6 +153,6 @@ def start_proxy(host='localhost', port=8888, http=True, warmup=2):
 def stop_proxy(pid):
     if pid not in _PROXIES:
         raise ValueError("Not found")
-
     proc = _PROXIES.pop(pid)
     proc.terminate()
+    proc.wait()
