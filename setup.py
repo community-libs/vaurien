@@ -17,10 +17,10 @@ with open('README.rst') as f:
 setup(name='vaurien',
       version=__version__,
       packages=find_packages(),
-      description=("TCP hazard"),
+      description=("TCP Chaos Proxy"),
       long_description=README,
-      author="Alexis Metaireau",
-      author_email="alexis@notmyidea.org",
+      author="Mozilla Foundation & contributors",
+      author_email="services-dev@lists.mozila.org",
       include_package_data=True,
       zip_safe=False,
       classifiers=[
