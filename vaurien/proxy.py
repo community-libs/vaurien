@@ -3,10 +3,10 @@ import errno
 import socket
 import gevent
 import random
-from select import select
 
 from gevent.server import StreamServer
 from gevent.socket import create_connection
+from gevent.select import select
 
 from vaurien.util import parse_address, get_handlers_from_config
 from vaurien.handlers import handlers as default_handlers
