@@ -9,4 +9,4 @@ try:
     from vaurien.util import start_proxy, stop_proxy    # NOQA
 except ImportError:
     # that may be at installation time
-    Client = start_proxy = stop_proxy = None
+    Client = start_proxy = stop_proxy = None            # NOQA

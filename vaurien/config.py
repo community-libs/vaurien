@@ -11,6 +11,7 @@ https://wiki.mozilla.org/index.php?title=Services/Sync/Server/GlobalConfFile
 """
 import re
 import os
+from os.path import abspath, normpath, expandvars, expanduser
 from ConfigParser import RawConfigParser
 
 _IS_NUMBER = re.compile('^-?[0-9].*')
@@ -151,11 +152,7 @@ def load_into_settings(filename, settings):
             config = Configurator(settings=settings)
 
     """
-    filename = os.path.abspath(
-                 os.path.normpath(
-                   os.path.expandvars(
-                     os.path.expanduser(
-                       filename))))
+    filename = abspath(normpath(expandvars(expanduser(filename))))
 
     if not os.path.isfile(filename):
         raise ValueError("Unexistant filename '%s'" % filename)
@@ -261,16 +258,16 @@ class SettingsDict(dict):
 
 
 DEFAULT_SETTINGS = SettingsDict({
-        # default ratios
-        'vaurien.local': 'localhost:8000',
-        'vaurien.distant': 'localhost:80',
-        'vaurien.behavior': '100:dummy',
-        'vaurien.bufsize': 1024,
+    # default ratios
+    'vaurien.local': 'localhost:8000',
+    'vaurien.distant': 'localhost:80',
+    'vaurien.behavior': '100:dummy',
+    'vaurien.bufsize': 1024,
 
-        # stats config
-        'statsd.enabled': False,
-        'statsd.host': 'localhost',
-        'statsd.port': 8125,
-        'statsd.prefix': 'vaurien',
-        'statsd.sample_rate': 1.0
+    # stats config
+    'statsd.enabled': False,
+    'statsd.host': 'localhost',
+    'statsd.port': 8125,
+    'statsd.prefix': 'vaurien',
+    'statsd.sample_rate': 1.0
 })

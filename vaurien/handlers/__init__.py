@@ -1,6 +1,8 @@
 import os
 import copy
+
 import gevent
+from gevent.socket import error
 
 
 class BaseHandler(object):
@@ -9,6 +11,10 @@ class BaseHandler(object):
 
     def __init__(self, settings=None, proxy=None):
         self.proxy = proxy
+        if proxy is not None:
+            self.logger = self.proxy._logger
+        else:
+            self.logger = None
 
         if settings is None:
             self.settings = {}
@@ -19,6 +25,8 @@ class BaseHandler(object):
         self.settings.update(settings)
 
     def _convert(self, value, type_):
+        if isinstance(value, type_):
+            return value
         if type_ == bool:
             value = value.lower()
             return value in ('y', 'yes', '1', 'on')
@@ -31,10 +39,11 @@ class BaseHandler(object):
 
     def _get_data(self, client_sock, backend_sock, to_backend, buffer=1024):
         sock = to_backend and client_sock or backend_sock
-        data = sock.recv(1024)
-        if not data:
-            sock.close()
-            return
+        try:
+            data = sock.recv(1024)
+        except error:
+            data = None
+
         return data
 
 
@@ -53,6 +62,8 @@ class Dummy(BaseHandler):
             dest = to_backend and backend_sock or client_sock
             dest.sendall(data)
 
+        return data != ''
+
 
 class Delay(BaseHandler):
     """Adds a delay before the backend is called.
@@ -62,28 +73,31 @@ class Delay(BaseHandler):
     name = 'delay'
     options = {'sleep': ("Delay in seconds", int, 1),
                'before':
-                    ("If True adds before the backend is called. Otherwise"
-                     " after", bool, True)}
+               ("If True adds before the backend is called. Otherwise"
+                " after", bool, True)}
 
     def __call__(self, client_sock, backend_sock, to_backend):
-        before = to_backend and self.options('before')
-        after = not to_backend and not self.options('before')
+        before = to_backend and self.option('before')
+        after = not to_backend and not self.option('before')
 
         if before:
-            gevent.sleep(self.options('sleep'))
+            gevent.sleep(self.option('sleep'))
 
         data = self._get_data(client_sock, backend_sock, to_backend)
 
         if after:
-            gevent.sleep(self.options('sleep'))
+            gevent.sleep(self.option('sleep'))
 
         if data:
             dest = to_backend and backend_sock or client_sock
             dest.sendall(data)
 
+        return data != ''
+
 
 class Error(Dummy):
-    """Reads the packets that have been sent then send random data in the socket.
+    """Reads the packets that have been sent then send random data in
+    the socket.
 
     The *inject* option can be used to inject data within valid data received
     from the backend. The Warmup option can be used to deactivate the random
@@ -103,11 +117,12 @@ class Error(Dummy):
     def __call__(self, client_sock, backend_sock, to_backend):
         if self.current < self.option('warmup'):
             self.current += 1
-            return super(Error, self).__call__(client_sock, backend_sock, to_backend)
+            return super(Error, self).__call__(client_sock, backend_sock,
+                                               to_backend)
 
         data = self._get_data(client_sock, backend_sock, to_backend)
         if not data:
-            return
+            return False
 
         dest = to_backend and backend_sock or client_sock
 
@@ -116,7 +131,6 @@ class Error(Dummy):
                 middle = len(data) / 2
                 dest.sendall(data[:middle] + os.urandom(100) + data[middle:])
             else:                   # sending the data tp the backend
-                print 'sending data to the backend'
                 dest.sendall(data)
 
         else:
@@ -124,8 +138,11 @@ class Error(Dummy):
                 # XXX find how to handle errors (which errors should we send)
                 # depends on the protocol
                 dest.sendall(os.urandom(1000))
+
             else:          # sending the data tp the backend
                 dest.sendall(data)
+
+        return True
 
 
 class Hang(BaseHandler):
@@ -156,6 +173,7 @@ class Blackout(BaseHandler):
         """Don't do anything -- the sockets get closed
         """
         client_sock.close()
+        return False
 
 
 handlers = {'dummy': Dummy(),

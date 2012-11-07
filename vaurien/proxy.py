@@ -1,21 +1,20 @@
-import time
-import errno
-import socket
 import gevent
 import random
 
 from gevent.server import StreamServer
 from gevent.socket import create_connection
-from gevent.select import select
+from gevent.select import select, error
 
 from vaurien.util import parse_address, get_handlers_from_config
 from vaurien.handlers import handlers as default_handlers
+from vaurien._pool import FactoryPool
 
 
 class DefaultProxy(StreamServer):
 
     def __init__(self, local, distant, handlers=None, protocol=None,
-                 settings=None, statsd=None, logger=None, **kwargs):
+                 settings=None, statsd=None, logger=None, timeout=30,
+                 **kwargs):
 
         if handlers is None:
             handlers = default_handlers
@@ -26,6 +25,7 @@ class DefaultProxy(StreamServer):
         dest = parse_address(distant)
         StreamServer.__init__(self, local, **kwargs)
 
+        self._pool = FactoryPool(self._create_connection)
         self.dest = dest
         self.settings = settings
         self.prococol = protocol
@@ -36,43 +36,45 @@ class DefaultProxy(StreamServer):
         self.handlers.update(get_handlers_from_config(self.settings, logger))
         self.handler = default_handlers['dummy']
         self.handler_name = 'dummy'
+        self.timeout = timeout
+
+    def _create_connection(self):
+        conn = create_connection(self.dest)
+        conn.setblocking(0)
+        return conn
 
     def get_handler(self):
         return self.handler, self.handler_name
 
     def handle(self, client_sock, address):
         client_sock.setblocking(0)
-        backend_sock = create_connection(self.dest)
-        backend_sock.setblocking(0)
-
         handler, handler_name = self.get_handler()
         handler.proxy = self
-
+        handler.logger = self._logger
         self.statsd_incr(handler_name)
+        try:
+            with self._pool.reserve() as backend_sock:
+                while True:
+                    try:
+                        res = select([client_sock, backend_sock], [], [],
+                                     timeout=self.timeout)
+                        rlist = res[0]
+                    except error:
+                        return
 
-        while True:
-            try:
-                rlist, __, __ = select([client_sock, backend_sock], [], [],
-                                       30)
-            except socket.error, err:
-                rlist = []
+                    greens = [gevent.spawn(self.weirdify, handler, client_sock,
+                                           backend_sock,
+                                           sock is not backend_sock,
+                                           handler_name)
+                              for sock in rlist]
 
-            if rlist == []:
-                break
+                    res = [green.get() for green in greens]
 
-            greens = []
+                    if not all(res):
+                        return
 
-            for sock in rlist:
-                green = gevent.spawn(self.weirdify, handler, client_sock,
-                                     backend_sock, sock is not backend_sock,
-                                     handler_name)
-                greens.append(green)
-
-            for green in greens:
-                green.join()
-
-        client_sock.close()
-        backend_sock.close()
+        finally:
+            client_sock.close()
 
     def statsd_incr(self, counter):
         if self._statsd:
@@ -91,8 +93,8 @@ class DefaultProxy(StreamServer):
         try:
             settings = self.settings.getsection('handlers.%s' % handler_name)
             handler.update_settings(settings)
-            handler(client_sock=client_sock, backend_sock=backend_sock,
-                    to_backend=to_backend)
+            return handler(client_sock=client_sock, backend_sock=backend_sock,
+                           to_backend=to_backend)
         finally:
             self._logger.debug('exiting weirdify %s' % to_backend)
 
@@ -120,7 +122,8 @@ class RandomProxy(DefaultProxy):
                 choices = self.handlers.keys()
                 msg = "%r is an unknown handler. Pick one of: %s."
                 raise ValueError(msg % (handler_name,
-                    ', '.join(['%r' % choice for choice in choices])))
+                                        ', '.join(['%r' % choice
+                                                   for choice in choices])))
 
             choices[handler_name] = self.handlers[handler_name], percent
             total += percent

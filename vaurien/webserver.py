@@ -9,9 +9,9 @@ except ImportError as e:
     reqs = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                         'web-requirements.txt')
 
-    raise ImportError('You need some dependencies to run the web interface. '\
-                    + 'You can do so by using "pip install -r '
-                    + '%s"\nInitial error: %s' % (reqs, str(e)))
+    raise ImportError('You need some dependencies to run the web interface. '
+                      'You can do so by using "pip install -r '
+                      '%s"\nInitial error: %s' % (reqs, str(e)))
 
 app = Flask(__name__)
 
@@ -20,12 +20,12 @@ app = Flask(__name__)
 def update_renderer():
     if request.method == 'POST':
         data = json.loads(request.data)
-
+        name = data['name']
         try:
             app.proxy.set_handler(**data)
         except KeyError:
             request.errors.add('headers', 'handler',
-                               "the '%s' handler does not exist" % handler)
+                               "the '%s' handler does not exist" % name)
         return "ok"
     else:
         return app.proxy.get_handler()[1]

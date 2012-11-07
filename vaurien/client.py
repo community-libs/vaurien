@@ -47,11 +47,12 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description='Change the vaurien handler')
     parser.add_argument('action', help='The action you want to do.',
-                    choices=['list-handlers', 'set-handler', 'get-handler'])
+                        choices=['list-handlers', 'set-handler',
+                                 'get-handler'])
     parser.add_argument('handler', nargs='?',
-                    help='The vaurien handler to set for the next calls')
+                        help='The vaurien handler to set for the next calls')
     parser.add_argument('--host', dest='host', default='http://localhost:8080',
-                    help='The host to use. Provide the scheme.')
+                        help='The host to use. Provide the scheme.')
 
     args = parser.parse_args()
     parts = urlparse(args.host)
