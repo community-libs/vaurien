@@ -4,7 +4,7 @@ from vaurien.handlers.base import BaseHandler
 class Blackout(BaseHandler):
     """Just closes the client socket on every call.
     """
-    name = 'hang'
+    name = 'blackout'
     options = {}
 
     def __call__(self, client_sock, backend_sock, to_backend):

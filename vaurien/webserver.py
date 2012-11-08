@@ -3,7 +3,8 @@ import os
 import json
 
 try:
-    from flask import Flask, request, request_started, request_finished
+    from flask import (Flask, request, request_started, request_finished,
+                       jsonify)
 except ImportError as e:
     reqs = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                         'web-requirements.txt')
@@ -13,6 +14,11 @@ except ImportError as e:
                       '%s"\nInitial error: %s' % (reqs, str(e)))
 
 app = Flask(__name__)
+
+
+@app.route('/handlers', methods=['GET'])
+def get_handlers():
+    return jsonify(handlers=app.proxy.get_handler_names())
 
 
 @app.route('/handler', methods=['POST', 'GET'])

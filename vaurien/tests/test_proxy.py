@@ -33,6 +33,10 @@ class TestSimpleProxy(unittest.TestCase):
         stop_proxy(self._proxy_pid)
         self._web.terminate()
 
+    def test_existing_handlers(self):
+        wanted = ['blackout', 'delay', 'dummy', 'error', 'hang']
+        self.assertEqual(self.client.list_handlers(), wanted)
+
     def test_proxy(self):
         # let's do a few simple request first to make sure the proxy works
         self.assertEqual(self.client.get_handler(), 'dummy')

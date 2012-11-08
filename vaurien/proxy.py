@@ -46,6 +46,11 @@ class DefaultProxy(StreamServer):
     def get_handler(self):
         return self.handler, self.handler_name
 
+    def get_handler_names(self):
+        keys = get_handlers().keys()
+        keys.sort()
+        return keys
+
     def handle(self, client_sock, address):
         client_sock.setblocking(0)
         handler, handler_name = self.get_handler()
