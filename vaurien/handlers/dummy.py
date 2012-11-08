@@ -11,7 +11,8 @@ class Dummy(BaseHandler):
     options = {'keep_alive': ("Keep-alive protocol",
                               bool, False),
                'reuse_socket': ("If True, the socket is reused.",
-                                bool, False)}
+                                bool, False),
+               'buffer': ("Buffer size", int, 2048)}
 
     def __call__(self, client_sock, backend_sock, to_backend):
         data = self._get_data(client_sock, backend_sock, to_backend)
@@ -25,7 +26,7 @@ class Dummy(BaseHandler):
             if not self.option('keep_alive'):
                 data = ''
                 while True:
-                    data = dest.recv(1024)
+                    data = dest.recv(self.option('buffer'))
 
                     if data == '':
                         break
