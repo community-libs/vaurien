@@ -129,7 +129,7 @@ _PROXIES = {}
 def start_proxy(proxy_host='localhost', proxy_port=8000,
                 backend_host='localhost', backend_port=8888,
                 http=True, warmup=2,
-                http_host='proxyhost', http_port=8080):
+                http_host='localhost', http_port=8080):
     """Starts a proxy
     """
     proxy = '%s:%d' % (proxy_host, proxy_port)
