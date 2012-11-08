@@ -153,18 +153,22 @@ handler and make sure your web application behaves as it should.
 
 Creating new handlers is done by implementing a class with a specific signature.
 
-You can inherit from the base class Vaurien provides and just implement the
-**__call__** method::
+You just have to write a class with a **__call__** method, and register it with
+**Handler.register**::
 
-    from vaurien.handlers import BaseHandler
+    from vaurien.handlers import Handler
 
-    class MySuperHandler(BaseHandler):
+    class MySuperHandler(object):
 
         name = 'super'
         options = {}
 
         def __call__(self, client_sock, backend_sock, to_backend):
             # do something here
+            return True
+
+    Handler.register(MySuperHandler)
+
 
 More about this in :ref:`extending`.
 
@@ -188,3 +192,5 @@ Contents:
    apis
    handlers
    extending
+   keepalive
+

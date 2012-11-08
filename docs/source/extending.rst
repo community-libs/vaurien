@@ -3,26 +3,37 @@
 Writing Handlers
 ================
 
-Creating new handlers is done by implementing a class with a specific signature.
+.. note::
 
-You can inherit from the base class Vaurien provides and just implement the
-**__call__** method::
+   Before reading this section, make sure you read :ref:`keep`
 
-    from vaurien.handlers import BaseHandler
 
-    class MySuperHandler(BaseHandler):
+Creating new handlers is done by implementing a class with a specific
+signature::
+
+
+    from vaurien.handlers import Handler
+
+    class MySuperHandler(object):
 
         name = 'super'
         options = {}
 
         def __call__(self, client_sock, backend_sock, to_backend):
             # do something here
+            return True
+
+
+    Handler.register(MySuperHandler)
 
 
 Vaurien can use this handler and call it everytime data is being seen on one hand
 or the other.
 
-Where:
+You must call **Handler.register** against your class is order to add it
+to the list of the available plugins.
+
+Let's see the different attributes and options we have in this class:
 
 - **name** - the name under which your backend is known
 - **options** - a mapping containing your handler options
@@ -33,11 +44,6 @@ Where:
   to go to the backend. If False, it means data is available on the backend
   socket and should be tramsmitted back to the client.
 
-A handler instance is initialized with two values:
-
-- **settings** - the settings loaded for the handler
-- **proxy** - the proxy instance
-
 For the handler options, each option is defined in the **options** mapping.
 The key is the option name and the value is a 3-tuple providing:
 
@@ -47,38 +53,62 @@ The key is the option name and the value is a 3-tuple providing:
 
 **every option is optional and need a default value**
 
+Everytime a handler is used, it gets two extra attributes:
+
+- **settings** - the settings loaded for the handler
+- **proxy** - the proxy instance
+
+The BaseHandler class
+---------------------
+
+XXX
+
 Full handler example
 --------------------
 
 Here is how the `delay` handler is specified::
 
+    from vaurien.handlers.base import BaseHandler
 
-    from vaurien.handlers import BaseHandler
 
-    class Delay(BaseHandler):
-        """Adds a delay before the backend is called.
+    class Dummy(BaseHandler):
+        """Dummy handler.
+
+        Every incoming data is passed to the backend with no alteration,
+        and vice-versa.
         """
-        name = 'delay'
-        options = {'sleep': ("Delay in seconds", int, 1),
-                'before':
-                        ("If True adds before the backend is called. Otherwise"
-                        " after", bool, True)}
+        name = 'dummy'
+        options = {'keep_alive': ("Keep-alive protocol",
+                                bool, False),
+                'reuse_socket': ("If True, the socket is reused.",
+                                    bool, False)}
 
         def __call__(self, client_sock, backend_sock, to_backend):
-            before = to_backend and self.options('before')
-            after = not to_backend and not self.options('before')
-
-            if before:
-                gevent.sleep(self.options('sleep'))
-
             data = self._get_data(client_sock, backend_sock, to_backend)
-
-            if after:
-                gevent.sleep(self.options('sleep'))
-
             if data:
                 dest = to_backend and backend_sock or client_sock
+                source = to_backend and client_sock or backend_sock
                 dest.sendall(data)
+
+                # If we are not keeping the connection alive
+                # we can suck the answer back and close the socket
+                if not self.option('keep_alive'):
+                    data = ''
+                    while True:
+                        data = dest.recv(1024)
+
+                        if data == '':
+                            break
+                        source.sendall(data)
+                    dest.close()
+                    dest._closed = True
+            elif not to_backend:
+                # We want to close the socket if the backend sock is empty
+                if not self.option('reuse_socket'):
+                    backend_sock.close()
+                    backend_sock._closed = True
+
+            return data != ''
 
 
 Using handlers
