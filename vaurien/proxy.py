@@ -6,7 +6,7 @@ from gevent.socket import create_connection
 from gevent.select import select, error
 
 from vaurien.util import parse_address, get_handlers_from_config
-from vaurien.handlers import handlers as default_handlers
+from vaurien.handlers import get_handlers
 from vaurien._pool import FactoryPool
 
 
@@ -17,7 +17,7 @@ class DefaultProxy(StreamServer):
                  **kwargs):
 
         if handlers is None:
-            handlers = default_handlers
+            handlers = get_handlers()
         logger.info('Starting the Chaos TCP Server')
         logger.info('%s => %s' % (proxy, backend))
 
@@ -34,13 +34,13 @@ class DefaultProxy(StreamServer):
         self._logger = logger
         self.handlers = handlers
         self.handlers.update(get_handlers_from_config(self.settings, logger))
-        self.handler = default_handlers['dummy']
+        self.handler = get_handlers()['dummy']
         self.handler_name = 'dummy'
         self.timeout = timeout
 
     def _create_connection(self):
         conn = create_connection(self.dest)
-        conn.setblocking(0)
+        #conn.setblocking(0)    # XXX will work on backend async later
         return conn
 
     def get_handler(self):
@@ -52,6 +52,7 @@ class DefaultProxy(StreamServer):
         handler.proxy = self
         handler.logger = self._logger
         self.statsd_incr(handler_name)
+
         try:
             with self._pool.reserve() as backend_sock:
                 while True:
@@ -60,6 +61,8 @@ class DefaultProxy(StreamServer):
                                      timeout=self.timeout)
                         rlist = res[0]
                     except error:
+                        backend_sock.close()
+                        backend_sock._closed = True
                         return
 
                     greens = [gevent.spawn(self.weirdify, handler, client_sock,
@@ -135,7 +138,7 @@ class RandomProxy(DefaultProxy):
             if 'dummy' in choices:
                 choices['dummy'][1] += missing
             else:
-                choices['dummy'] = default_handlers['dummy'], missing
+                choices['dummy'] = get_handlers()['dummy'], missing
 
         for name, (handler, percent) in choices.items():
             self.choices.extend(

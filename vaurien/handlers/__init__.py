@@ -1,183 +1,70 @@
-import os
-import copy
-
-import gevent
-from gevent.socket import error
+from abc import ABCMeta, abstractmethod
 
 
-class BaseHandler(object):
-    options = {}
-    name = ''
+class Handler(object):
+    __metaclass__ = ABCMeta
+    _cache = {}
 
-    def __init__(self, settings=None, proxy=None):
-        self.proxy = proxy
-        if proxy is not None:
-            self.logger = self.proxy._logger
-        else:
-            self.logger = None
-
-        if settings is None:
-            self.settings = {}
-        else:
-            self.settings = copy.copy(settings)
-
-    def update_settings(self, settings):
-        self.settings.update(settings)
-
-    def _convert(self, value, type_):
-        if isinstance(value, type_):
-            return value
-        if type_ == bool:
-            value = value.lower()
-            return value in ('y', 'yes', '1', 'on')
-        return type_(value)
-
-    def option(self, name):
-        _, type_, default = self.options[name]
-        value = self.settings.get(name, default)
-        return self._convert(value, type_)
-
-    def _get_data(self, client_sock, backend_sock, to_backend, buffer=1024):
-        sock = to_backend and client_sock or backend_sock
-        try:
-            data = sock.recv(1024)
-        except error:
-            data = None
-
-        return data
-
-
-class Dummy(BaseHandler):
-    """Dummy handler.
-
-    Every incoming data is passed to the backend with no alteration,
-    and vice-versa.
-    """
-    name = 'dummy'
-    options = {}
-
+    @abstractmethod
     def __call__(self, client_sock, backend_sock, to_backend):
-        data = self._get_data(client_sock, backend_sock, to_backend)
-        if data:
-            dest = to_backend and backend_sock or client_sock
-            dest.sendall(data)
+        pass
 
-        return data != ''
+    @classmethod
+    def __subclasshook__(cls, klass):
+        if cls is Handler:
+            for method in cls.__abstractmethods__:
+                if any(method in base.__dict__ for base in klass.__mro__):
+                    continue
+                return NotImplemented
+            return True
+        return NotImplemented
 
+    @classmethod
+    def register(cls, subclass):
+        ABCMeta.register(cls, subclass)
+        if subclass not in cls._abc_registry:
+            cls._abc_registry.add(subclass)
 
-class Delay(BaseHandler):
-    """Adds a delay before the backend is called.
+    @classmethod
+    def _get_instance(cls, klass):
+        name = klass.name
+        if name not in cls._cache:
+            cls._cache[name] = klass()
+        return cls._cache[name]
 
-    The delay can happen *after* or *before* the backend is called.
-    """
-    name = 'delay'
-    options = {'sleep': ("Delay in seconds", int, 1),
-               'before':
-               ("If True adds before the backend is called. Otherwise"
-                " after", bool, True)}
+    @classmethod
+    def get_handlers(cls):
+        return dict([(klass.name, cls._get_instance(klass))
+                     for klass in cls._abc_registry])
 
-    def __call__(self, client_sock, backend_sock, to_backend):
-        before = to_backend and self.option('before')
-        after = not to_backend and not self.option('before')
-
-        if before:
-            gevent.sleep(self.option('sleep'))
-
-        data = self._get_data(client_sock, backend_sock, to_backend)
-
-        if after:
-            gevent.sleep(self.option('sleep'))
-
-        if data:
-            dest = to_backend and backend_sock or client_sock
-            dest.sendall(data)
-
-        return data != ''
-
-
-class Error(Dummy):
-    """Reads the packets that have been sent then send random data in
-    the socket.
-
-    The *inject* option can be used to inject data within valid data received
-    from the backend. The Warmup option can be used to deactivate the random
-    data injection for a number of calls. This is useful if you need the
-    communication to settle in some speficic protocols before the ramdom
-    data is injected.
-
-    """
-    name = 'error'
-    options = {'inject': ("Inject errors inside valid data", bool, False),
-               'warmup': ("Number of calls before erroring out", int, 0)}
-
-    def __init__(self, settings=None, proxy=None):
-        super(Error, self).__init__(settings, proxy)
-        self.current = 0
-
-    def __call__(self, client_sock, backend_sock, to_backend):
-        if self.current < self.option('warmup'):
-            self.current += 1
-            return super(Error, self).__call__(client_sock, backend_sock,
-                                               to_backend)
-
-        data = self._get_data(client_sock, backend_sock, to_backend)
-        if not data:
-            return False
-
-        dest = to_backend and backend_sock or client_sock
-
-        if self.option('inject'):
-            if not to_backend:      # back to the client
-                middle = len(data) / 2
-                dest.sendall(data[:middle] + os.urandom(100) + data[middle:])
-            else:                   # sending the data tp the backend
-                dest.sendall(data)
-
-        else:
-            if not to_backend:
-                # XXX find how to handle errors (which errors should we send)
-                # depends on the protocol
-                dest.sendall(os.urandom(1000))
-
-            else:          # sending the data tp the backend
-                dest.sendall(data)
-
-        return True
+    @classmethod
+    def get_handler(cls, name):
+        for klass in cls._abc_registry:
+            if klass.name == name:
+                return cls._get_instance(klass)
+        raise KeyError(name)
 
 
-class Hang(BaseHandler):
-    """Reads the packets that have been sent then hangs.
-
-    Acts like a *pdb.set_trace()* you'd forgot in your code ;)
-    """
-    name = 'hang'
-    options = {}
-
-    def ___call__(self, client_sock, backend_sock, to_backend):
-        # consume the socket and hang
-        data = self._get_data(client_sock, backend_sock, to_backend)
-        while data:
-            data = self._get_data(client_sock, backend_sock, to_backend)
-
-        while True:
-            gevent.sleep(1.)
+def get_handlers():
+    return Handler.get_handlers()
 
 
-class Blackout(BaseHandler):
-    """Just closes the client socket on every call.
-    """
-    name = 'hang'
-    options = {}
-
-    def __call__(self, client_sock, backend_sock, to_backend):
-        """Don't do anything -- the sockets get closed
-        """
-        client_sock.close()
-        return False
+def get_handler(name):
+    return Handler.get_handlers(name)()
 
 
-handlers = {'dummy': Dummy(),
-            'delay': Delay(),
-            'error': Error(),
-            'hang': Hang(),
-            'blackout': Blackout()}
+# manually register built-in plugins
+from vaurien.handlers.dummy import Dummy
+Handler.register(Dummy)
+
+from vaurien.handlers.error import Error
+Handler.register(Error)
+
+from vaurien.handlers.blackout import Blackout
+Handler.register(Blackout)
+
+from vaurien.handlers.delay import Delay
+Handler.register(Delay)
+
+from vaurien.handlers.hang import Hang
+Handler.register(Hang)

@@ -3,8 +3,7 @@ import os
 import json
 
 try:
-    from flask import (Flask, request, request_started, request_finished,
-                       make_response)
+    from flask import Flask, request, request_started, request_finished
 except ImportError as e:
     reqs = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                         'web-requirements.txt')
@@ -29,14 +28,6 @@ def update_renderer():
         return "ok"
     else:
         return app.proxy.get_handler()[1]
-
-
-@app.route('/handlers')
-def list_handlers():
-    """List all the available handlers"""
-    resp = make_response(json.dumps({'handlers': app.proxy.handlers.keys()}))
-    resp.content_type = 'application/json'
-    return resp
 
 
 # utils

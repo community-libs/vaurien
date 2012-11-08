@@ -31,9 +31,9 @@ class FactoryPool(object):
             self._checkin_connection(ts, client)
 
     def _checkout_connection(self):
-
         # If there's no maxsize, no need to block waiting for a connection.
         blocking = self.maxsize is not None
+
         # Loop until we get a non-stale connection, or we create a new one.
         while True:
             try:
@@ -62,6 +62,10 @@ class FactoryPool(object):
 
     def _checkin_connection(self, ts, client):
         """Return a connection to the pool."""
+        if hasattr(client, '_closed') and client._closed:
+            self.clients.put(EMPTY_SLOT)
+            return
+
         # If the connection is now stale, don't return it to the pool.
         # Push an empty slot instead so that it will be refreshed when needed.
         now = int(time.time())
