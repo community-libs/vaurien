@@ -53,21 +53,21 @@ Vaurien is a command-line tool.
 
 Let's say you want to add a delay for 20% of the requests done on google.com::
 
-    $ vaurien --local localhost:8000 --distant google.com:80 --behavior 20:delay
+    $ vaurien --proxy localhost:8000 --backend google.com:80 --behavior 20:delay
 
 
 Vaurien will stream all the traffic to google.com but will add delays 20% of the
 time. You can pass options to the handler using *--handlers.NAME.OPTION* options::
 
-    $ vaurien --local localhost:8000 --distant google.com:80 --behavior 20:delay \
+    $ vaurien --proxy localhost:8000 --backend google.com:80 --behavior 20:delay \
         --handlers.delay.sleep 2
 
 Passing all options through the command-line can be tedious, so you can
 also create a *ini* file for this::
 
     [vaurien]
-    distant = google.com:80
-    local = localhost:8000
+    backend = google.com:80
+    proxy = localhost:8000
     behavior = 20:delay
 
     [handler:delay]

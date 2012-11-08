@@ -126,8 +126,8 @@ def main():
     statsd = get_statsd_from_settings(settings.getsection('statsd'))
 
     # creating the proxy
-    proxy_args = dict(local=settings['vaurien.local'],
-                      distant=settings['vaurien.distant'],
+    proxy_args = dict(proxy=settings['vaurien.proxy'],
+                      backend=settings['vaurien.backend'],
                       settings=settings, statsd=statsd, logger=logger)
 
     if args.http:

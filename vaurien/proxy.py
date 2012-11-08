@@ -12,18 +12,18 @@ from vaurien._pool import FactoryPool
 
 class DefaultProxy(StreamServer):
 
-    def __init__(self, local, distant, handlers=None, protocol=None,
+    def __init__(self, proxy, backend, handlers=None, protocol=None,
                  settings=None, statsd=None, logger=None, timeout=30,
                  **kwargs):
 
         if handlers is None:
             handlers = default_handlers
         logger.info('Starting the Chaos TCP Server')
-        logger.info('%s => %s' % (local, distant))
+        logger.info('%s => %s' % (proxy, backend))
 
-        local = parse_address(local)
-        dest = parse_address(distant)
-        StreamServer.__init__(self, local, **kwargs)
+        proxy = parse_address(proxy)
+        dest = parse_address(backend)
+        StreamServer.__init__(self, proxy, **kwargs)
 
         self._pool = FactoryPool(self._create_connection)
         self.dest = dest

@@ -259,8 +259,8 @@ class SettingsDict(dict):
 
 DEFAULT_SETTINGS = SettingsDict({
     # default ratios
-    'vaurien.local': 'localhost:8000',
-    'vaurien.distant': 'localhost:80',
+    'vaurien.proxy': 'localhost:8000',
+    'vaurien.backend': 'localhost:80',
     'vaurien.behavior': '100:dummy',
     'vaurien.bufsize': 1024,
 
