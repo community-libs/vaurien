@@ -16,11 +16,13 @@ APIs
 
 **POST** **/handler**
 
-   Set the handler.
+   Set the handler. The handler must be provided in a JSON mapping
+   in the body of the request, with a **name** key for the handler
+   name, and any option to pass to the handler class.
 
    Example::
 
-     $ curl -d"delay" http://localhost:8080/handler
+     $ curl -d"'{"sleep": 2, "name": "delay"}'" http://localhost:8080/handler
      OK
 
 
