@@ -65,14 +65,20 @@ def main():
                         help='Port of the http server, if any')
 
     # get the values from the default config
-    keys = DEFAULT_SETTINGS.keys()
-    keys.sort()
+    defaults = DEFAULT_SETTINGS.items()
+    defaults.sort()
 
-    for key in keys:
+    for key, default in defaults:
         if key.startswith('vaurien'):
             key = key[len('vaurien.'):]
-
-        parser.add_argument('--%s' % key, default=None)
+        key = key.replace('_', '-')
+        type_ = default.__class__
+        if type_ is bool:
+            parser.add_argument('--%s' % key, default=default,
+                                action='store_true')
+        else:
+            parser.add_argument('--%s' % key, default=default,
+                                type=type_)
 
     parser.add_argument('--log-level', dest='loglevel', default='info',
                         choices=LOG_LEVELS.keys() + [key.upper() for key in

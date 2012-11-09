@@ -263,6 +263,8 @@ DEFAULT_SETTINGS = SettingsDict({
     'vaurien.backend': 'localhost:80',
     'vaurien.behavior': '100:dummy',
     'vaurien.bufsize': 1024,
+    'vaurien.timeout': 30,
+    'vaurien.stay_connected': False,
 
     # stats config
     'statsd.enabled': False,

@@ -13,18 +13,14 @@ from vaurien._pool import FactoryPool
 class DefaultProxy(StreamServer):
 
     def __init__(self, proxy, backend, handlers=None, protocol=None,
-                 settings=None, statsd=None, logger=None, timeout=30,
-                 **kwargs):
+                 settings=None, statsd=None, logger=None, **kwargs):
 
         if handlers is None:
             handlers = get_handlers()
         logger.info('Starting the Chaos TCP Server')
-        logger.info('%s => %s' % (proxy, backend))
-
-        proxy = parse_address(proxy)
+        parsed_proxy = parse_address(proxy)
         dest = parse_address(backend)
-        StreamServer.__init__(self, proxy, **kwargs)
-
+        StreamServer.__init__(self, parsed_proxy, **kwargs)
         self._pool = FactoryPool(self._create_connection)
         self.dest = dest
         self.settings = settings
@@ -36,7 +32,13 @@ class DefaultProxy(StreamServer):
         self.handlers.update(get_handlers_from_config(self.settings, logger))
         self.handler = get_handlers()['dummy']
         self.handler_name = 'dummy'
-        self.timeout = timeout
+        cfg = self.settings.getsection('vaurien')
+        self.stay_connected = cfg.get('stay_connected', False)
+        self.timeout = cfg.get('timeout', 30)
+        logger.info('Options:')
+        logger.info('* proxies from %s to %s' % (proxy, backend))
+        logger.info('* timeout: %d' % self.timeout)
+        logger.info('* stay_connected: %d' % self.stay_connected)
 
     def _create_connection(self):
         conn = create_connection(self.dest)
@@ -78,7 +80,9 @@ class DefaultProxy(StreamServer):
 
                     res = [green.get() for green in greens]
 
-                    if not all(res):
+                    got_data = all(res) and len(res) > 0
+
+                    if not got_data and not self.stay_connected:
                         return
 
         finally:
