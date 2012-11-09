@@ -1,3 +1,4 @@
+from gevent.socket import error
 from vaurien.handlers.base import BaseHandler
 
 
@@ -26,13 +27,22 @@ class Dummy(BaseHandler):
             if not self.option('keep_alive'):
                 data = ''
                 while True:
-                    data = dest.recv(self.option('buffer'))
+                    try:
+                        data = dest.recv(self.option('buffer'))
+                    except error, err:
+                        if err.errno == 35:
+                            continue
 
                     if data == '':
                         break
                     source.sendall(data)
+
                 dest.close()
                 dest._closed = True
+
+                if not self.option('reuse_socket'):
+                    backend_sock.close()
+                    backend_sock._closed = True
         elif not to_backend:
             # We want to close the socket if the backend sock is empty
             if not self.option('reuse_socket'):

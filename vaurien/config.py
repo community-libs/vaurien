@@ -265,6 +265,8 @@ DEFAULT_SETTINGS = SettingsDict({
     'vaurien.bufsize': 1024,
     'vaurien.timeout': 30,
     'vaurien.stay_connected': False,
+    'vaurien.pool_max_size': 100,
+    'vaurien.pool_timeout': 30,
 
     # stats config
     'statsd.enabled': False,

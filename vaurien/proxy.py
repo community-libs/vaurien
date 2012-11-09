@@ -14,16 +14,20 @@ class DefaultProxy(StreamServer):
 
     def __init__(self, proxy, backend, handlers=None, protocol=None,
                  settings=None, statsd=None, logger=None, **kwargs):
-
+        self.settings = settings
+        cfg = self.settings.getsection('vaurien')
         if handlers is None:
             handlers = get_handlers()
         logger.info('Starting the Chaos TCP Server')
         parsed_proxy = parse_address(proxy)
         dest = parse_address(backend)
         StreamServer.__init__(self, parsed_proxy, **kwargs)
-        self._pool = FactoryPool(self._create_connection)
+        self.pool_max_size = cfg.get('pool_max_size', 100)
+        self.pool_timeout = cfg.get('pool_timeout', 30)
+        self.async_mode = cfg.get('async_mode', False)
+        self._pool = FactoryPool(self._create_connection, self.pool_max_size,
+                                 self.pool_timeout)
         self.dest = dest
-        self.settings = settings
         self.prococol = protocol
         self.running = True
         self._statsd = statsd
@@ -32,17 +36,20 @@ class DefaultProxy(StreamServer):
         self.handlers.update(get_handlers_from_config(self.settings, logger))
         self.handler = get_handlers()['dummy']
         self.handler_name = 'dummy'
-        cfg = self.settings.getsection('vaurien')
         self.stay_connected = cfg.get('stay_connected', False)
         self.timeout = cfg.get('timeout', 30)
         logger.info('Options:')
         logger.info('* proxies from %s to %s' % (proxy, backend))
         logger.info('* timeout: %d' % self.timeout)
         logger.info('* stay_connected: %d' % self.stay_connected)
+        logger.info('* pool_max_size: %d' % self.pool_max_size)
+        logger.info('* pool_timeout: %d' % self.pool_timeout)
+        logger.info('* async_mode: %d' % self.async_mode)
 
     def _create_connection(self):
         conn = create_connection(self.dest)
-        #conn.setblocking(0)    # XXX will work on backend async later
+        if self.async_mode:
+            conn.setblocking(0)
         return conn
 
     def get_handler(self):
