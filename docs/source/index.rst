@@ -79,6 +79,7 @@ is called a **handler**, and the ini file gets one section per handler.
 
 You can find a descriptions of all built-in handlers here: :ref:`handlers`.
 
+You can also find some examples here: :ref:`examples`.
 
 Controlling Vaurien live
 ========================
