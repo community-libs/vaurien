@@ -126,7 +126,8 @@ def main():
         if not option.startswith('--handlers.'):
             continue
         option = option[len('--'):]
-        option = option.split('=', 1)
+        separator = '=' in option and '=' or ' '
+        option = [el.strip() for el in option.split(separator, 1)]
         settings[option[0]] = option[1]
 
     statsd = get_statsd_from_settings(settings.getsection('statsd'))
