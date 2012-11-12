@@ -1,6 +1,6 @@
 import os
 
-from vaurien.handlers import handlers
+from vaurien.handlers import get_handlers
 
 
 _HEADER = """\
@@ -19,7 +19,7 @@ def generate_handlers(app):
     path = os.path.join(app.srcdir, 'handlers')
     ext = app.config['source_suffix']
     filename = os.path.join(app.srcdir, "handlers%s" % ext)
-    items = handlers.items()
+    items = get_handlers().items()
     items.sort()
 
     with open(filename, "w") as doc:

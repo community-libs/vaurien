@@ -194,4 +194,5 @@ Contents:
    handlers
    extending
    keepalive
+   examples
 

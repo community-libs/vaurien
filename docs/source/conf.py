@@ -43,7 +43,7 @@ class Mock(object):
         return Mock()
 
 
-MOCK_MODULES = ['gevent']
+MOCK_MODULES = ['gevent', 'gevent.socket']
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 for mod_name in MOCK_MODULES:
