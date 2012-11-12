@@ -6,6 +6,7 @@ import logging
 from vaurien.proxy import OnTheFlyProxy, RandomProxy
 from vaurien.config import load_into_settings, DEFAULT_SETTINGS
 from vaurien import __version__, logger
+from vaurien.handlers import get_handlers
 
 
 LOG_LEVELS = {
@@ -87,7 +88,21 @@ def main():
     parser.add_argument('--log-output', dest='logoutput', default='-',
                         help="log output")
 
-    args, remaining = parser.parse_known_args()
+    # now for each registered handler, we are going to provide its options
+    for name, klass in get_handlers().items():
+        for option_name, option in klass.options.items():
+            description, type_, default = option
+            option_name = '--handler-%s-%s' % (name,
+                                               option_name.replace('_', '-'))
+            if type_ is bool:
+                kws = {'action': default and 'store_true' or 'store_false'}
+            else:
+                kws = {'action': 'store', 'type': type_}
+
+            parser.add_argument(option_name, default=default,
+                                help=description, **kws)
+
+    args = parser.parse_args()
 
     if args.version:
         print(__version__)
@@ -121,14 +136,8 @@ def main():
         if value is not None:
             settings[prefix + key] = value
 
-    # inject custom handlers options
-    for option in remaining:
-        if not option.startswith('--handlers.'):
-            continue
-        option = option[len('--'):]
-        separator = '=' in option and '=' or ' '
-        option = [el.strip() for el in option.split(separator, 1)]
-        settings[option[0]] = option[1]
+    # pass the args in the settings
+    settings['args'] = args
 
     statsd = get_statsd_from_settings(settings.getsection('statsd'))
 

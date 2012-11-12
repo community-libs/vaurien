@@ -81,8 +81,8 @@ class DefaultProxy(StreamServer):
                         backend_sock._closed = True
                         return
 
-                    greens = [gevent.spawn(self._weirdify, handler, client_sock,
-                                           backend_sock,
+                    greens = [gevent.spawn(self._weirdify, handler,
+                                           client_sock, backend_sock,
                                            sock is not backend_sock,
                                            handler_name,
                                            statsd_prefix)
@@ -106,7 +106,7 @@ class DefaultProxy(StreamServer):
             self._logger.info(counter)
 
     def _weirdify(self, handler, client_sock, backend_sock, to_backend,
-                 handler_name, statsd_prefix):
+                  handler_name, statsd_prefix):
         """This is where all the magic happens.
 
         Depending the configuration, we will chose to either drop packets,
@@ -119,8 +119,16 @@ class DefaultProxy(StreamServer):
 
         self._logger.debug('starting weirdify %s' % to_backend)
         try:
-            settings = self.settings.getsection('handlers.%s' % handler_name)
-            handler.update_settings(settings)
+            # XXX cache this ?
+            args = self.settings['args']
+            handler_settings = {}
+            prefix = 'handler_%s_' % handler_name
+            for arg in dir(args):
+                if not arg.startswith(prefix):
+                    continue
+                handler_settings[arg[len(prefix):]] = getattr(args, arg)
+
+            handler.update_settings(handler_settings)
             return handler(client_sock=client_sock, backend_sock=backend_sock,
                            to_backend=to_backend)
         finally:
