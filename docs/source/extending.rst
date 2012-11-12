@@ -122,7 +122,7 @@ Then you can use it with the **--behavior** option::
 
     $ vaurien --proxy localhost:8000 --backend google.com:80 \
         --behavior 20:path.to.the.callable \
-        --handlers.delay.sleep 2
+        --handler-delay-sleep 2
 
 Or by using a configuration file::
 

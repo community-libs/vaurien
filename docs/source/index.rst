@@ -60,7 +60,7 @@ Vaurien will stream all the traffic to google.com but will add delays 20% of the
 time. You can pass options to the handler using *--handlers.NAME.OPTION* options::
 
     $ vaurien --proxy localhost:8000 --backend google.com:80 --behavior 20:delay \
-        --handlers.delay.sleep 2
+        --handler-delay-sleep 2
 
 Passing all options through the command-line can be tedious, so you can
 also create a *ini* file for this::
