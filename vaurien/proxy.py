@@ -1,5 +1,6 @@
 import gevent
 import random
+from uuid import uuid4
 
 from gevent.server import StreamServer
 from gevent.socket import create_connection
@@ -65,7 +66,8 @@ class DefaultProxy(StreamServer):
         handler, handler_name = self.get_handler()
         handler.proxy = self
         handler.logger = self._logger
-        self.statsd_incr(handler_name)
+        statsd_prefix = '%s.%s.' % (handler_name, uuid4())
+        self.statsd_incr(statsd_prefix + 'start')
 
         try:
             with self._pool.reserve() as backend_sock:
@@ -79,10 +81,11 @@ class DefaultProxy(StreamServer):
                         backend_sock._closed = True
                         return
 
-                    greens = [gevent.spawn(self.weirdify, handler, client_sock,
+                    greens = [gevent.spawn(self._weirdify, handler, client_sock,
                                            backend_sock,
                                            sock is not backend_sock,
-                                           handler_name)
+                                           handler_name,
+                                           statsd_prefix)
                               for sock in rlist]
 
                     res = [green.get() for green in greens]
@@ -93,6 +96,7 @@ class DefaultProxy(StreamServer):
                         return
 
         finally:
+            self.statsd_incr(statsd_prefix + 'end')
             client_sock.close()
 
     def statsd_incr(self, counter):
@@ -101,13 +105,18 @@ class DefaultProxy(StreamServer):
         elif self._logger:
             self._logger.info(counter)
 
-    def weirdify(self, handler, client_sock, backend_sock, to_backend,
-                 handler_name):
+    def _weirdify(self, handler, client_sock, backend_sock, to_backend,
+                 handler_name, statsd_prefix):
         """This is where all the magic happens.
 
         Depending the configuration, we will chose to either drop packets,
         proxy them, wait a long time, etc, as defined in the configuration.
         """
+        if to_backend:
+            self.statsd_incr(statsd_prefix + 'to_backend')
+        else:
+            self.statsd_incr(statsd_prefix + 'to_client')
+
         self._logger.debug('starting weirdify %s' % to_backend)
         try:
             settings = self.settings.getsection('handlers.%s' % handler_name)
