@@ -17,19 +17,16 @@ class Client(object):
     def set_handler(self, handler, **options):
         options['name'] = handler
         res = requests.post(self.handler_url, data=json.dumps(options))
-        if res.status_code != 200 or res.content != 'ok':
-            raise ValueError(res.content)
+        res.raise_for_status()
 
     def get_handler(self):
         res = requests.get(self.handler_url)
-        if res.status_code != 200:
-            raise ValueError(res.content)
+        res.raise_for_status()
         return res.content
 
     def list_handlers(self):
         res = requests.get(self.list_handlers_url)
-        if res.status_code != 200:
-            raise ValueError(res.content)
+        res.raise_for_status()
         return res.json['handlers']
 
     @contextmanager
