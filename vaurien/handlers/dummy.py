@@ -9,6 +9,7 @@ RE_KEEPALIVE = re.compile('Connection: Keep-Alive')
 RE_MEMCACHE_COMMAND = re.compile('(.*)\r\n')
 
 EOH = '\r\n\r\n'
+CRLF = '\r\n'
 
 
 def chunked(total, chunk):
@@ -38,7 +39,69 @@ class Dummy(BaseHandler):
                'buffer': ("Buffer size", int, 2048),
                'protocol': ("Protocol used", str, 'unknown')}
 
+
+    def _abandon(self, to_backend):
+        if not to_backend:
+            # We want to close the socket if the backend sock is empty
+            if not self.option('reuse_socket'):
+                backend_sock.close()
+                backend_sock._closed = True
+
+
+    def _redis(self, client_sock, backend_sock, to_backend):
+        """
+            http://redis.io/topics/protocol
+
+        *<number of arguments> CR LF
+        $<number of bytes of argument 1> CR LF
+        <argument data> CR LF
+        ...
+        $<number of bytes of argument N> CR LF
+        <argument data> CR LF
+        """
+        buffer_size = self.option('buffer')
+
+        # Getting the data
+        buffer = self._get_data(client_sock, backend_sock, to_backend)
+        if not buffer:
+            self._abandon(to_backend)
+            return
+
+        # sending the query
+        dest = to_backend and backend_sock or client_sock
+        source = to_backend and client_sock or backend_sock
+        dest.sendall(buffer)
+
+        # getting the answer back
+        buffer = dest.recv(buffer_size)
+        source.sendall(buffer)
+        already_read = len(buffer)
+
+        if buffer[0] in ('+', '-', ':'):
+            # simple reply, we're good
+            return False
+
+        if buffer[0] == '$':
+            # bulk reply
+            size = int(buffer[1:buffer.find(CRLF)])
+            left_to_read = size - already_read
+
+            if left_to_read > 0:
+                for chunk in chunked(left_to_read, buffer_size):
+                    data = source.recv(chunk)
+                    buffer += data
+                    dest.sendall(data)
+
+            return False
+
+        if buffer[0] == '*':
+            # multi-bulk reply
+            raise NotImplementedError()
+
+        raise NotImplementedError()
+
     def _memcache(self, client_sock, backend_sock, to_backend):
+        # see https://github.com/memcached/memcached/blob/master/doc/protocol.txt
         buffer_size = self.option('buffer')
 
         # Sending the query
@@ -168,6 +231,9 @@ class Dummy(BaseHandler):
             return self._http(client_sock, backend_sock, to_backend)
         elif self.option('protocol') == 'memcache':
             return self._memcache(client_sock, backend_sock, to_backend)
+        elif self.option('protocol') == 'redis':
+            return self._redis(client_sock, backend_sock, to_backend)
+
 
         data = self._get_data(client_sock, backend_sock, to_backend)
         if data:
