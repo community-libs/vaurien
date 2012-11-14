@@ -7,8 +7,9 @@ class Blackout(BaseHandler):
     name = 'blackout'
     options = {}
 
-    def __call__(self, client_sock, backend_sock, to_backend):
+    def __call__(self, source, dest, to_backend):
         """Don't do anything -- the sockets get closed
         """
-        client_sock.close()
+        source.close()
+        source._closed = True
         return False

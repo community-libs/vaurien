@@ -236,10 +236,7 @@ class Dummy(BaseHandler):
 
         return data != ''
 
-    def __call__(self, client_sock, backend_sock, to_backend):
-        dest = to_backend and backend_sock or client_sock
-        source = to_backend and client_sock or backend_sock
-
+    def __call__(self, source, dest, to_backend):
         self.on_before_handler()
 
         try:

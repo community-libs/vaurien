@@ -114,8 +114,12 @@ class DefaultProxy(StreamServer):
         """
         if to_backend:
             self.statsd_incr(statsd_prefix + 'to_backend')
+            dest = backend_sock
+            source = client_sock
         else:
             self.statsd_incr(statsd_prefix + 'to_client')
+            source = backend_sock
+            dest = client_sock
 
         self._logger.debug('starting weirdify %s' % to_backend)
         try:
@@ -129,8 +133,7 @@ class DefaultProxy(StreamServer):
                 handler_settings[arg[len(prefix):]] = getattr(args, arg)
 
             handler.update_settings(handler_settings)
-            return handler(client_sock=client_sock, backend_sock=backend_sock,
-                           to_backend=to_backend)
+            return handler(source, dest, to_backend)
         finally:
             self._logger.debug('exiting weirdify %s' % to_backend)
 

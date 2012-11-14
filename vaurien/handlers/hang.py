@@ -10,11 +10,11 @@ class Hang(BaseHandler):
     name = 'hang'
     options = {}
 
-    def ___call__(self, client_sock, backend_sock, to_backend):
+    def ___call__(self, source, dest, to_backend):
         # consume the socket and hang
-        data = self._get_data(client_sock, backend_sock, to_backend)
+        data = self._get_data(source, dest, to_backend)
         while data:
-            data = self._get_data(client_sock, backend_sock, to_backend)
+            data = self._get_data(source, dest, to_backend)
 
         while True:
             gevent.sleep(1.)

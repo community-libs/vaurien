@@ -54,32 +54,31 @@ class Error(Dummy):
     communication to settle in some speficic protocols before the ramdom
     data is injected.
 
+    The *inject* option is deactivated when the *http* option is used.
     """
     name = 'error'
     options = {'inject': ("Inject errors inside valid data", bool, False),
-               'warmup': ("Number of calls before erroring out", int, 0),
-               'http': ("return random 50xs", bool, False)}
+               'warmup': ("Number of calls before erroring out", int, 0)}
+    options.update(Dummy.options)
 
     def __init__(self, settings=None, proxy=None):
         super(Error, self).__init__(settings, proxy)
         self.current = 0
 
-    def __call__(self, client_sock, backend_sock, to_backend):
-        if self.option('http') and to_backend:
-            # we'll just send back a random error
-            client_sock.sendall(random_http_error())
-            return
+    def __call__(self, source, dest, to_backend):
 
         if self.current < self.option('warmup'):
             self.current += 1
-            return super(Error, self).__call__(client_sock, backend_sock,
-                                               to_backend)
+            return super(Error, self).__call__(source, dest, to_backend)
 
-        data = self._get_data(client_sock, backend_sock, to_backend)
+        data = self._get_data(source)
         if not data:
             return False
 
-        dest = to_backend and backend_sock or client_sock
+        if self.option('http') and to_backend:
+            # we'll just send back a random error
+            source.sendall(random_http_error())
+            return
 
         if self.option('inject'):
             if not to_backend:      # back to the client
