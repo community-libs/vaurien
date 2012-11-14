@@ -11,23 +11,13 @@ class Delay(Dummy):
     options = {'sleep': ("Delay in seconds", int, 1),
                'before':
                ("If True adds before the backend is called. Otherwise"
-                " after", bool, True),
-               'keep_alive': ("Keep-alive protocol",
-                              bool, False),
-               'reuse_socket': ("If True, the socket is reused.",
-                                bool, False)}
+                " after", bool, True)}
+    options.update(Dummy.options)
 
-    def __call__(self, client_sock, backend_sock, to_backend):
-        before = to_backend and self.option('before')
-        after = not to_backend and not self.option('before')
-
-        if before:
+    def on_before_handler(self):
+        if self.option('before'):
             gevent.sleep(self.option('sleep'))
 
-        res = super(Delay, self).__call__(client_sock, backend_sock,
-                                          to_backend)
-
-        if after:
+    def on_after_handler(self):
+        if not self.option('before'):
             gevent.sleep(self.option('sleep'))
-
-        return res

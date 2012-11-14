@@ -37,6 +37,15 @@ class Dummy(BaseHandler):
                'buffer': ("Buffer size", int, 2048),
                'protocol': ("Protocol used", str, 'unknown')}
 
+    #
+    # Events
+    #
+    def on_before_handler(self):
+        pass
+
+    def on_after_handler(self):
+        pass
+
     def _abandon(self, to_backend, backend_sock):
         if not to_backend:
             # We want to close the socket if the backend sock is empty
@@ -54,6 +63,7 @@ class Dummy(BaseHandler):
             return
 
         # Sending the request to the backend.
+        self.on_before_send_data(source, dest)
         dest.sendall(buffer)
 
         # Getting the answer back and sending it over.
@@ -230,12 +240,17 @@ class Dummy(BaseHandler):
         dest = to_backend and backend_sock or client_sock
         source = to_backend and client_sock or backend_sock
 
-        # specific protocol implementations
-        if self.option('protocol') == 'http':
-            return self._http(source, dest, to_backend)
-        elif self.option('protocol') == 'memcache':
-            return self._memcache(source, dest, to_backend)
-        elif self.option('protocol') == 'redis':
-            return self._redis(source, dest, to_backend)
+        self.on_before_handler()
 
-        return self._tcp(source, dest, to_backend)
+        try:
+            # specific protocol implementations
+            if self.option('protocol') == 'http':
+                return self._http(source, dest, to_backend)
+            elif self.option('protocol') == 'memcache':
+                return self._memcache(source, dest, to_backend)
+            elif self.option('protocol') == 'redis':
+                return self._redis(source, dest, to_backend)
+
+            return self._tcp(source, dest, to_backend)
+        finally:
+            self.on_after_handler()
