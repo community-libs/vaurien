@@ -1,6 +1,4 @@
 import re
-
-from gevent.socket import error
 from vaurien.handlers.base import BaseHandler
 
 
@@ -39,47 +37,34 @@ class Dummy(BaseHandler):
                'buffer': ("Buffer size", int, 2048),
                'protocol': ("Protocol used", str, 'unknown')}
 
-
-    def _abandon(self, to_backend):
+    def _abandon(self, to_backend, backend_sock):
         if not to_backend:
             # We want to close the socket if the backend sock is empty
             if not self.option('reuse_socket'):
                 backend_sock.close()
                 backend_sock._closed = True
 
-
-    def _redis(self, client_sock, backend_sock, to_backend):
+    def _redis(self, source, dest, to_backend):
+        """ see http://redis.io/topics/protocol
         """
-            http://redis.io/topics/protocol
-
-        *<number of arguments> CR LF
-        $<number of bytes of argument 1> CR LF
-        <argument data> CR LF
-        ...
-        $<number of bytes of argument N> CR LF
-        <argument data> CR LF
-        """
-        buffer_size = self.option('buffer')
-
-        # Getting the data
-        buffer = self._get_data(client_sock, backend_sock, to_backend)
+        # Getting the request.
+        buffer = self._get_data(source)
         if not buffer:
-            self._abandon(to_backend)
+            self._abandon(to_backend, dest)
             return
 
-        # sending the query
-        dest = to_backend and backend_sock or client_sock
-        source = to_backend and client_sock or backend_sock
+        # Sending the request to the backend.
         dest.sendall(buffer)
 
-        # getting the answer back
+        # Getting the answer back and sending it over.
+        buffer_size = self.option('buffer')
         buffer = dest.recv(buffer_size)
         source.sendall(buffer)
         already_read = len(buffer)
 
         if buffer[0] in ('+', '-', ':'):
             # simple reply, we're good
-            return False
+            return False    # disconnect mode ?
 
         if buffer[0] == '$':
             # bulk reply
@@ -92,7 +77,7 @@ class Dummy(BaseHandler):
                     buffer += data
                     dest.sendall(data)
 
-            return False
+            return False  # disconnect mode ?
 
         if buffer[0] == '*':
             # multi-bulk reply
@@ -100,39 +85,29 @@ class Dummy(BaseHandler):
 
         raise NotImplementedError()
 
-    def _memcache(self, client_sock, backend_sock, to_backend):
-        # see https://github.com/memcached/memcached/blob/master/doc/protocol.txt
-        buffer_size = self.option('buffer')
+    def _memcache(self, source, dest, to_backend):
+        # https://github.com/memcached/memcached/blob/master/doc/protocol.txt
 
         # Sending the query
-        buffer = self._get_data(client_sock, backend_sock, to_backend)
+        buffer = self._get_data(source)
         if not buffer:
-            if not to_backend:
-                # We want to close the socket if the backend sock is empty
-                if not self.option('reuse_socket'):
-                    backend_sock.close()
-                    backend_sock._closed = True
+            self._abandon(to_backend, dest)
             return
 
         # sending the first packet
-        dest = to_backend and backend_sock or client_sock
-        source = to_backend and client_sock or backend_sock
         dest.sendall(buffer)
 
-        # finding the command sent.
+        # finding the command we sent.
         cmd = RE_MEMCACHE_COMMAND.search(buffer)
 
         if cmd is None:
             # wat ?
-            if not to_backend:
-                # We want to close the socket if the backend sock is empty
-                if not self.option('reuse_socket'):
-                    backend_sock.close()
-                    backend_sock._closed = True
+            self._abandon(to_backend, dest)
             return
 
         # looking at the command
         cmd = cmd.groups()[0]
+        buffer_size = self.option('buffer')
 
         if cmd in ('set', 'add', 'replace', 'append'):
             cmd_size = len(cmd) + len('\r\n')
@@ -165,21 +140,17 @@ class Dummy(BaseHandler):
         # we're done
         return True    # keeping connected
 
-    def _http(self, client_sock, backend_sock, to_backend):
+    def _http(self, source, dest, to_backend):
         buffer_size = self.option('buffer')
 
-        # Sending the query
-        data = self._get_data(client_sock, backend_sock, to_backend)
+        # Getting the HTTP query
+        data = self._get_data(source)
+
         if not data:
-            if not to_backend:
-                # We want to close the socket if the backend sock is empty
-                if not self.option('reuse_socket'):
-                    backend_sock.close()
-                    backend_sock._closed = True
+            self._abandon(to_backend, dest)
             return
 
-        dest = to_backend and backend_sock or client_sock
-        source = to_backend and client_sock or backend_sock
+        # sending it to the backend
         dest.sendall(data)
 
         # Receiving the response
@@ -195,7 +166,8 @@ class Dummy(BaseHandler):
         # keep alive header ?
         keep_alive = RE_KEEPALIVE.search(buffer) is not None
 
-        # content-length header
+        # content-length header - to see if we need to suck more
+        # data.
         match = RE_LEN.search(buffer)
         if match:
             resp_len = int(match.group(1))
@@ -216,61 +188,54 @@ class Dummy(BaseHandler):
 
         # do we close the client ?
         if not keep_alive and not self.option('keep_alive'):
-            dest.close()
-            dest._closed = True
+            source.close()
+            source._closed = True
 
         if not self.option('reuse_socket') and not self.option('keep_alive'):
-            backend_sock.close()
-            backend_sock._closed = True
+            dest.close()
+            dest._closed = True
 
         # we're done
         return keep_alive or self.option('keep_alive')
 
-    def __call__(self, client_sock, backend_sock, to_backend):
-        if self.option('protocol') == 'http':
-            return self._http(client_sock, backend_sock, to_backend)
-        elif self.option('protocol') == 'memcache':
-            return self._memcache(client_sock, backend_sock, to_backend)
-        elif self.option('protocol') == 'redis':
-            return self._redis(client_sock, backend_sock, to_backend)
-
-
-        data = self._get_data(client_sock, backend_sock, to_backend)
+    def _tcp(self, source, dest, to_backend):
+        # default TCP behavior
+        data = self._get_data(source)
         if data:
-            dest = to_backend and backend_sock or client_sock
-            source = to_backend and client_sock or backend_sock
             dest.sendall(data)
 
             # If we are not keeping the connection alive
             # we can suck the answer back and close the socket
             if not self.option('keep_alive'):
-                buffer_size = self.option('buffer')
                 # just suck it until it's empty
                 data = ''
                 while True:
-                    try:
-                        data = dest.recv(buffer_size)
-                    except error, err:
-                        if err.errno == 35:
-                            continue
-
+                    data = self._get_data(dest)
                     if data == '':
                         break
                     source.sendall(data)
 
-                dest.close()
-                dest._closed = True
-
                 if not self.option('reuse_socket'):
-                    backend_sock.close()
-                    backend_sock._closed = True
+                    dest.close()
+                    dest._closed = True
 
-                # we're done
+                # we're done - False means we'll disconnect the client
                 return False
-        elif not to_backend:
-            # We want to close the socket if the backend sock is empty
-            if not self.option('reuse_socket'):
-                backend_sock.close()
-                backend_sock._closed = True
+        else:
+            self._abandon(to_backend, dest)
 
         return data != ''
+
+    def __call__(self, client_sock, backend_sock, to_backend):
+        dest = to_backend and backend_sock or client_sock
+        source = to_backend and client_sock or backend_sock
+
+        # specific protocol implementations
+        if self.option('protocol') == 'http':
+            return self._http(source, dest, to_backend)
+        elif self.option('protocol') == 'memcache':
+            return self._memcache(source, dest, to_backend)
+        elif self.option('protocol') == 'redis':
+            return self._redis(source, dest, to_backend)
+
+        return self._tcp(source, dest, to_backend)

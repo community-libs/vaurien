@@ -35,11 +35,11 @@ class BaseHandler(object):
         value = self.settings.get(name, default)
         return self._convert(value, type_)
 
-    def _get_data(self, client_sock, backend_sock, to_backend, buffer=1024):
-        sock = to_backend and client_sock or backend_sock
+    def _get_data(self, sock, buffer=1024):
         try:
-            data = sock.recv(1024)
-        except error:
+            data = sock.recv(self.option('buffer'))
+        except error:   # for the async mode
+            # XXX on 35 we should retry
             data = ''
 
         return data
