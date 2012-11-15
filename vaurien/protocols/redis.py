@@ -23,7 +23,7 @@ class Redis(BaseProtocol):
         # Getting the request.
         buffer = self._get_data(source)
         if not buffer:
-            self._abandon(to_backend, dest)
+            self._abort_handling(to_backend, dest)
             return
 
         # Sending the request to the backend.

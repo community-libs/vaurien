@@ -24,7 +24,7 @@ class BaseProtocol(object):
         else:
             self.settings = copy.copy(settings)
 
-    def _abandon(self, to_backend, backend_sock):
+    def _abort_handling(self, to_backend, backend_sock):
         if not to_backend:
             # We want to close the socket if the backend sock is empty
             if not self.option('reuse_socket'):

@@ -23,7 +23,7 @@ class Memcache(BaseProtocol):
         # Sending the query
         buffer = self._get_data(source)
         if not buffer:
-            self._abandon(to_backend, dest)
+            self._abort_handling(to_backend, dest)
             return
 
         # sending the first packet
@@ -34,7 +34,7 @@ class Memcache(BaseProtocol):
 
         if cmd is None:
             # wat ?
-            self._abandon(to_backend, dest)
+            self._abort_handling(to_backend, dest)
             return
 
         # looking at the command
