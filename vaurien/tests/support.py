@@ -1,4 +1,5 @@
 import sys
+import subprocess
 
 from vaurien.webserver import create_app
 
@@ -34,6 +35,13 @@ def start_vaurien_httpserver(port):
 
     server = WSGIServer(('localhost', int(port)), app, log=None)
     server.serve_forever()
+
+
+def start_simplehttp_server(port=8888):
+    cmd = [sys.executable, '-m', 'SimpleHTTPServer', str(port)]
+    server = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+    return server
 
 
 if __name__ == '__main__':
