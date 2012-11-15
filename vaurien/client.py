@@ -17,6 +17,11 @@ class Client(object):
     def set_handler(self, handler, **options):
         options['name'] = handler
         res = requests.post(self.handler_url, data=json.dumps(options))
+        if res.status_code == 400:
+            errors = res.json.get('errors', [])
+            status = res.json.get('status', 'error')
+            if status == 'error' and errors[0]['name'] == 'name':
+                raise ValueError(errors[0]['description'])
         res.raise_for_status()
 
     def get_handler(self):
