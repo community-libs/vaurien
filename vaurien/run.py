@@ -2,6 +2,7 @@ import fcntl
 import argparse
 import sys
 import logging
+from StringIO import StringIO
 
 from vaurien.proxy import OnTheFlyProxy, RandomProxy
 from vaurien.config import load_into_settings, DEFAULT_SETTINGS
@@ -167,7 +168,8 @@ def main():
         configure_logger(app.logger, args.loglevel, args.logoutput)
 
         # app.run(host=args.http_host, port=args.http_port)
-        http_server = WSGIServer((args.http_host, args.http_port), app)
+        http_server = WSGIServer((args.http_host, args.http_port), app,
+                                 log=StringIO())
 
         http_server.start()
         logger.info('Started the HTTP server: http://%s:%s' %
