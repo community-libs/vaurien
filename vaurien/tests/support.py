@@ -32,7 +32,7 @@ def start_vaurien_httpserver(port):
     app = create_app()
     setattr(app, 'proxy', FakeProxy())
 
-    server = WSGIServer(('localhost', int(port)), app)
+    server = WSGIServer(('localhost', int(port)), app, log=None)
     server.serve_forever()
 
 
