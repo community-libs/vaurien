@@ -25,7 +25,7 @@ class Http(BaseProtocol):
 
         if not data:
             self._abandon(to_backend, dest)
-            return
+            return False
 
         # sending it to the backend
         dest.sendall(data)

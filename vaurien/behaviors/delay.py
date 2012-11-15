@@ -24,6 +24,7 @@ class Delay(Dummy):
     def on_before_handle(self, protocol, source, dest, to_backend):
         if self.option('before'):
             gevent.sleep(self.option('sleep'))
+        return True
 
     def on_after_handle(self, protocol, source, dest, to_backend):
         if not self.option('before'):
