@@ -1,8 +1,10 @@
 import gevent
-from vaurien.handlers.base import BaseHandler
+
+from vaurien.behaviors.dummy import Dummy
+from vaurien.util import get_data
 
 
-class Hang(BaseHandler):
+class Hang(Dummy):
     """Reads the packets that have been sent then hangs.
 
     Acts like a *pdb.set_trace()* you'd forgot in your code ;)
@@ -10,11 +12,11 @@ class Hang(BaseHandler):
     name = 'hang'
     options = {}
 
-    def ___call__(self, source, dest, to_backend):
+    def on_before_handle(self, protocol, source, dest, to_backend):
         # consume the socket and hang
-        data = self._get_data(source, dest, to_backend)
+        data = get_data(source)
         while data:
-            data = self._get_data(source, dest, to_backend)
+            data = get_data(source)
 
         while True:
             gevent.sleep(1.)

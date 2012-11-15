@@ -1,15 +1,16 @@
-from vaurien.handlers.base import BaseHandler
+from vaurien.behaviors.dummy import Dummy
 
 
-class Blackout(BaseHandler):
-    """Just closes the client socket on every call.
+class Blackout(Dummy):
+    """Reads the packets that have been sent then hangs.
+
+    Acts like a *pdb.set_trace()* you'd forgot in your code ;)
     """
-    name = 'blackout'
+    name = 'hang'
     options = {}
 
-    def __call__(self, source, dest, to_backend):
-        """Don't do anything -- the sockets get closed
-        """
+    def on_before_handle(self, protocol, source, dest, to_backend):
+        # consume the socket and hang
         source.close()
         source._closed = True
         return False

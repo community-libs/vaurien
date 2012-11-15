@@ -6,7 +6,11 @@ class Behavior(object):
     _cache = {}
 
     @abstractmethod
-    def __call__(self, client_sock, backend_sock, to_backend):
+    def on_before_handle(self, protocol, source, dest, to_backend):
+        pass
+
+    @abstractmethod
+    def on_after_handle(self, protocol, source, dest, to_backend):
         pass
 
     @classmethod
@@ -60,11 +64,11 @@ Behavior.register(Dummy)
 from vaurien.behaviors.error import Error
 Behavior.register(Error)
 
-#from vaurien.behaviors.blackout import Blackout
-#Behavior.register(Blackout)
+from vaurien.behaviors.blackout import Blackout
+Behavior.register(Blackout)
 
 from vaurien.behaviors.delay import Delay
 Behavior.register(Delay)
 
-#from vaurien.behaviors.hang import Hang
-#Behavior.register(Hang)
+from vaurien.behaviors.hang import Hang
+Behavior.register(Hang)

@@ -106,8 +106,8 @@ def main():
             else:
                 description, type_, default, choices = option
 
-            option_name = '--handler-%s-%s' % (name,
-                                               option_name.replace('_', '-'))
+            option_name = '--behavior-%s-%s' % (name,
+                                                option_name.replace('_', '-'))
             if type_ is bool:
                 kws = {'action': default and 'store_true' or 'store_false'}
             else:
