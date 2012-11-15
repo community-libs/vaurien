@@ -2,6 +2,13 @@ from abc import ABCMeta, abstractmethod
 
 
 class Behavior(object):
+    """Registry for behaviors.
+
+    A behavior is a class that implements two methods:
+
+    - on_before_handle
+    - on_after_handle
+    """
     __metaclass__ = ABCMeta
     _cache = {}
 
@@ -50,14 +57,19 @@ class Behavior(object):
 
 
 def get_behaviors():
+    """Return a mapping of all behaviors.
+
+    The keys are the behavior names and the values the classes.
+    """
     return Behavior.get_behaviors()
 
 
 def get_behavior(name):
+    """Returns an instance of the given behavior."""
     return Behavior.get_behaviors(name)()
 
 
-# manually register built-in plugins
+# manually register built-in behaviors
 from vaurien.behaviors.dummy import Dummy
 Behavior.register(Dummy)
 

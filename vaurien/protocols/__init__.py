@@ -2,6 +2,11 @@ from abc import ABCMeta, abstractmethod
 
 
 class Protocol(object):
+    """Registry for protocol.
+
+    A protocol is a class that implements a __call__ method.
+    """
+
     __metaclass__ = ABCMeta
     _cache = {}
 
@@ -38,7 +43,7 @@ class Protocol(object):
                      for klass in cls._abc_registry])
 
     @classmethod
-    def get_handler(cls, name):
+    def get_protocol(cls, name):
         for klass in cls._abc_registry:
             if klass.name == name:
                 return cls._get_instance(klass)
@@ -46,11 +51,16 @@ class Protocol(object):
 
 
 def get_protocols():
+    """Return a mapping of all protocols.
+
+    The keys are the protocol names and the values the classes.
+    """
     return Protocol.get_protocols()
 
 
 def get_protocol(name):
-    return Protocol.get_handlers(name)()
+    """Returns an instance of the given protocol."""
+    return Protocol.get_protocol(name)()
 
 
 # manually register built-in protocols

@@ -4,7 +4,7 @@ from vaurien.behaviors.dummy import Dummy
 
 
 class Delay(Dummy):
-    """Adds a delay before the backend is called.
+    """Adds a delay before or after the backend is called.
 
     The delay can happen *after* or *before* the backend is called.
     """

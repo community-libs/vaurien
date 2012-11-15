@@ -1,8 +1,9 @@
 import re
 
 
-
 class Dummy(object):
+    """Transparent behavior. Nothing's done.
+    """
     name = 'dummy'
     options = {}
 
