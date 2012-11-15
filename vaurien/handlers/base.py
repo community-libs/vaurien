@@ -31,7 +31,7 @@ class BaseHandler(object):
         return type_(value)
 
     def option(self, name):
-        _, type_, default = self.options[name]
+        type_, default = self.options[name][1:3]
         value = self.settings.get(name, default)
         return self._convert(value, type_)
 
