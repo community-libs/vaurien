@@ -7,6 +7,7 @@ Writing Handlers
 
    Before reading this section, make sure you read :ref:`keep`
 
+XXX need full rewrite
 
 Creating new handlers is done by implementing a class with a specific
 signature::
