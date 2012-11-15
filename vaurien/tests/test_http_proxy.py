@@ -51,7 +51,7 @@ class TestHttpProxy(unittest.TestCase):
             try:
                 res = requests.get(_PROXY)
             finally:
-                times.append(time.time())
+                times.append(time.time() - start)
 
             self.assertEqual(res.status_code, 200)
 
@@ -69,7 +69,7 @@ class TestHttpProxy(unittest.TestCase):
             try:
                 res = requests.get(_PROXY)
             finally:
-                duration = time.time()
+                duration = time.time() - start
 
             self.assertEqual(res.status_code, 200)
             self.assertTrue(duration > fastest + 1)
