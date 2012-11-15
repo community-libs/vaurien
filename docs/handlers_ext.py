@@ -42,9 +42,18 @@ def generate_handlers(app):
             options = klass.options.items()
             options.sort()
 
-            for name, (desc, type_, default) in options:
-                doc.write('- **%s**: %s (%s, default: %s)\n' % (
-                    name, desc, type_.__name__, default))
+            for name, option in options:
+                if len(option) == 3:
+                    desc, type_, default = option
+                    desc = '%s (%s, default: %r)' % (desc, type_.__name__,
+                                                     default)
+                else:
+                    desc, type_, default, choices = option
+                    choices = ', '.join(['%r' % val for val in choices])
+                    pattern = '%s (%s, default: %r, possible values: %s)'
+                    desc = pattern % (desc, type_.__name__, default, choices)
+
+                doc.write('- **%s**: %s\n' % (name, desc))
 
             doc.write("\n\n")
 

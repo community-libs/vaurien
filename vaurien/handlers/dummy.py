@@ -23,6 +23,9 @@ def chunked(total, chunk):
                 data -= chunk
 
 
+_PROTOCOLS = ['tcp', 'redis', 'memache', 'http']
+
+
 class Dummy(BaseHandler):
     """Dummy handler.
 
@@ -35,7 +38,7 @@ class Dummy(BaseHandler):
                'reuse_socket': ("If True, the socket is reused.",
                                 bool, False),
                'buffer': ("Buffer size", int, 2048),
-               'protocol': ("Protocol used", str, 'unknown')}
+               'protocol': ("Protocol used", str, 'tcp', _PROTOCOLS)}
 
     #
     # Events

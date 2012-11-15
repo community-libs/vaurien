@@ -57,7 +57,7 @@ Let's say you want to add a delay for 20% of the requests done on google.com::
 
 
 Vaurien will stream all the traffic to google.com but will add delays 20% of the
-time. You can pass options to the handler using *--handlers.NAME.OPTION* options::
+time. You can pass options to the handler using *--handler-NAME-OPTION* options::
 
     $ vaurien --proxy localhost:8000 --backend google.com:80 --behavior 20:delay \
         --handler-delay-sleep 2
@@ -80,6 +80,7 @@ is called a **handler**, and the ini file gets one section per handler.
 You can find a descriptions of all built-in handlers here: :ref:`handlers`.
 
 You can also find some examples here: :ref:`examples`.
+
 
 Controlling Vaurien live
 ========================

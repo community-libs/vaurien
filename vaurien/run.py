@@ -91,13 +91,21 @@ def main():
     # now for each registered handler, we are going to provide its options
     for name, klass in get_handlers().items():
         for option_name, option in klass.options.items():
-            description, type_, default = option
+            if len(option) == 3:
+                description, type_, default = option
+                choices = None
+            else:
+                description, type_, default, choices = option
+
             option_name = '--handler-%s-%s' % (name,
                                                option_name.replace('_', '-'))
             if type_ is bool:
                 kws = {'action': default and 'store_true' or 'store_false'}
             else:
                 kws = {'action': 'store', 'type': type_}
+
+            if choices is not None:
+                kws = {'choices': choices}
 
             parser.add_argument(option_name, default=default,
                                 help=description, **kws)
