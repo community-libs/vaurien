@@ -11,13 +11,17 @@ class FakeProxy(object):
     def __init__(self, handlers=None):
         self.handlers = handlers or ['default', 'blackout']
         self.handler = 'default'
+        self.handler_options = {}
 
     def get_handler(self):
         # return None as a callable, since this is for tests only.
         return None, self.handler
 
     def set_handler(self, name, **options):
+        if name not in self.handlers:
+            raise KeyError(name)
         self.handler = name
+        self.handler_options = options
 
     def get_handler_names(self):
         return self.handlers
