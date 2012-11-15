@@ -3,6 +3,7 @@ import time
 import subprocess
 
 from gevent.socket import gethostbyname
+from gevent.socket import error
 
 
 class ImportStringError(ImportError):
@@ -175,3 +176,11 @@ def chunked(total, chunk):
                 chunk = data
             else:
                 data -= chunk
+
+def get_data(sock, buffer=1024):
+    try:
+        data = sock.recv(buffer)
+    except error:   # for the async mode
+        # XXX on 35 we should retry
+        data = ''
+    return data

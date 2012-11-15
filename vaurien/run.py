@@ -161,7 +161,8 @@ def main():
     # creating the proxy
     proxy_args = dict(proxy=settings['vaurien.proxy'],
                       backend=settings['vaurien.backend'],
-                      settings=settings, statsd=statsd, logger=logger)
+                      settings=settings, statsd=statsd, logger=logger,
+                      protocol=args.protocol)
 
     if args.http:
         # if we are using the http server, then we want to use the OnTheFly

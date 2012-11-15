@@ -1,5 +1,5 @@
 import copy
-from gevent.socket import error
+from vaurien.util import get_data
 
 
 class BaseProtocol(object):
@@ -8,7 +8,8 @@ class BaseProtocol(object):
     name = ''
     options = {'reuse_socket': ("If True, the socket is reused.",
                                  bool, False),
-               'buffer': ("Buffer size", int, 2048)
+               'buffer': ("Buffer size", int, 2048),
+               'keep_alive': ("Keep the connection alive", bool, False)
                }
 
     def __init__(self, settings=None, proxy=None):
@@ -46,18 +47,14 @@ class BaseProtocol(object):
         value = self.settings.get(name, default)
         return self._convert(value, type_)
 
-    def _get_data(self, sock, buffer=1024):
-        try:
-            data = sock.recv(self.option('buffer'))
-        except error:   # for the async mode
-            # XXX on 35 we should retry
-            data = ''
-
-        return data
+    def _get_data(self, sock):
+        return get_data(sock, self.option('buffer'))
 
     def __call__(self, source, dest, to_backend, behavior):
-        behavior.on_before_handle()
+        if not behavior.on_before_handle(self, source, dest, to_backend):
+            return True
+
         try:
             return self._handle(source, dest, to_backend)
         finally:
-            behavior.on_after_handle()
+            behavior.on_after_handle(self, source, dest, to_backend)

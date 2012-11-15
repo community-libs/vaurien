@@ -89,7 +89,8 @@ class DefaultProxy(StreamServer):
                     greens = [gevent.spawn(self._weirdify,
                                            client_sock, backend_sock,
                                            sock is not backend_sock,
-                                           statsd_prefix)
+                                           statsd_prefix,
+                                           behavior, behavior_name)
                               for sock in rlist]
 
                     res = [green.get() for green in greens]
@@ -110,7 +111,7 @@ class DefaultProxy(StreamServer):
             self._logger.info(counter)
 
     def _weirdify(self, client_sock, backend_sock, to_backend,
-                  statsd_prefix):
+                  statsd_prefix, behavior, behavior_name):
         """This is where all the magic happens.
 
         Depending the configuration, we will chose to either drop packets,

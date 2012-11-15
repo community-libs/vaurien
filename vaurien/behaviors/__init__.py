@@ -57,14 +57,14 @@ def get_behavior(name):
 from vaurien.behaviors.dummy import Dummy
 Behavior.register(Dummy)
 
-#from vaurien.behaviors.error import Error
-#Behavior.register(Error)
+from vaurien.behaviors.error import Error
+Behavior.register(Error)
 
 #from vaurien.behaviors.blackout import Blackout
 #Behavior.register(Blackout)
 
-#from vaurien.behaviors.delay import Delay
-#Behavior.register(Delay)
+from vaurien.behaviors.delay import Delay
+Behavior.register(Delay)
 
 #from vaurien.behaviors.hang import Hang
 #Behavior.register(Hang)
