@@ -2,7 +2,6 @@ import fcntl
 import argparse
 import sys
 import logging
-from StringIO import StringIO
 
 from vaurien.proxy import OnTheFlyProxy, RandomProxy
 from vaurien.config import load_into_settings, DEFAULT_SETTINGS
@@ -19,6 +18,11 @@ LOG_LEVELS = {
 
 LOG_FMT = r"%(asctime)s [%(process)d] [%(levelname)s] %(message)s"
 LOG_DATE_FMT = r"%Y-%m-%d %H:%M:%S"
+
+
+class DevNull(object):
+    def write(self, msg):
+        pass
 
 
 def close_on_exec(fd):
@@ -169,7 +173,7 @@ def main():
 
         # app.run(host=args.http_host, port=args.http_port)
         http_server = WSGIServer((args.http_host, args.http_port), app,
-                                 log=StringIO())
+                                 log=DevNull())
 
         http_server.start()
         logger.info('Started the HTTP server: http://%s:%s' %
