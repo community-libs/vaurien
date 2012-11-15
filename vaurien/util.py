@@ -100,27 +100,27 @@ def parse_address(address):
     return gethostbyname(hostname), port
 
 
-def get_handlers_from_config(settings, logger=None):
-    """Return a dict containing all the handlers that are defined in the
-    settings, in addition to all the handlers of vaurien
+def get_behaviors_from_config(settings, logger=None):
+    """Return a dict containing all the behaviors that are defined in the
+    settings, in addition to all the behaviors of vaurien
     """
-    handlers = {}
+    behaviors = {}
     if logger is None:
         from vaurien import logger
 
     for section in settings.sections():
-        if section.startswith('handler.'):
-            handler_name = section[len('handler.'):]
+        if section.startswith('behavior.'):
+            behavior_name = section[len('behavior.'):]
 
-            # have a look if we have a section named handler:{handler}
-            settings = settings.getsection('handler.%s' % handler_name)
-            handler_location = settings.get('callable', None)
-            if not handler_location:
-                logger.warning('callable not found for %s' % handler_name)
+            # have a look if we have a section named behavior:{behavior}
+            settings = settings.getsection('behavior.%s' % behavior_name)
+            behavior_location = settings.get('callable', None)
+            if not behavior_location:
+                logger.warning('callable not found for %s' % behavior_name)
                 continue
-            handler = import_string(handler_location)
-            handlers[handler_name] = handler
-    return handlers
+            behavior = import_string(behavior_location)
+            behaviors[behavior_name] = behavior
+    return behaviors
 
 
 _PROXIES = {}
@@ -162,3 +162,16 @@ def stop_proxy(pid):
     proc = _PROXIES.pop(pid)
     proc.terminate()
     proc.wait()
+
+
+def chunked(total, chunk):
+    if total <= chunk:
+        yield total
+    else:
+        data = total
+        while data > 0:
+            yield chunk
+            if data < chunk:
+                chunk = data
+            else:
+                data -= chunk
