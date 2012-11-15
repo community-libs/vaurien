@@ -27,7 +27,6 @@ class Redis(BaseProtocol):
             return
 
         # Sending the request to the backend.
-        self.on_before_send_data(source, dest)
         dest.sendall(buffer)
 
         # Getting the answer back and sending it over.
