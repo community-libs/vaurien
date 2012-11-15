@@ -154,11 +154,18 @@ def main():
         from gevent.wsgi import WSGIServer
 
         setattr(app, 'proxy', proxy)
+
+        # configure the web app logger
+        configure_logger(app.logger, args.loglevel, args.logoutput)
+
         # app.run(host=args.http_host, port=args.http_port)
         http_server = WSGIServer((args.http_host, args.http_port), app)
+
         http_server.start()
         logger.info('Started the HTTP server: http://%s:%s' %
                     (args.http_host, args.http_port))
+
+
     else:
         # per default, we want to randomize
         proxy = RandomProxy(**proxy_args)

@@ -6,11 +6,12 @@ import time
 
 from vaurien.client import Client
 from vaurien.util import start_proxy, stop_proxy
+from vaurien.tests.util import start_web_server
 
 
 _PROXY = 'http://localhost:8000'
-_SERVER = [sys.executable, '-m', 'SimpleHTTPServer',
-           '8888']
+_SERVER = [sys.executable, '-m', 'SimpleHTTPServer', '8888']
+
 
 # we should provide a way to set an option
 # for all handlers at once
@@ -23,8 +24,9 @@ _OPTIONS = ['--handler-delay-protocol', 'http',
 
 class TestHttpProxy(unittest.TestCase):
     def setUp(self):
-        self._proxy_pid = start_proxy(options=_OPTIONS)
-        self._web = subprocess.Popen(_SERVER)
+        self._proxy_pid = start_proxy(options=_OPTIONS, log_level='error',
+                                      log_output='/dev/null')
+        self._web = start_web_server()
         time.sleep(.5)
         try:
             if self._web.poll():
