@@ -129,6 +129,7 @@ _PROXIES = {}
 
 def start_proxy(proxy_host='localhost', proxy_port=8000,
                 backend_host='localhost', backend_port=8888,
+                protocol='tcp',
                 http=True, warmup=2,
                 http_host='localhost', http_port=8080, options=None,
                 log_level='info', log_output='-'):
@@ -139,7 +140,7 @@ def start_proxy(proxy_host='localhost', proxy_port=8000,
 
     cmd = [sys.executable, '-m', 'vaurien.run', '--backend', backend,
            '--proxy', proxy, '--log-level', log_level, '--log-output',
-           log_output]
+           log_output, '--protocol', protocol]
 
     if http:
         cmd.extend(['--http', '--http-host', http_host,

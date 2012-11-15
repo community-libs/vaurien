@@ -16,13 +16,13 @@ except ImportError as e:
 api = Blueprint('api', __name__)
 
 
-@api.route('/handlers', methods=['GET'])
-def get_handlers():
-    return jsonify(handlers=current_app.proxy.get_handler_names())
+@api.route('/behaviors', methods=['GET'])
+def get_behaviors():
+    return jsonify(behaviors=current_app.proxy.get_behavior_names())
 
 
-@api.route('/handler', methods=['POST', 'GET'])
-def update_handler():
+@api.route('/behavior', methods=['POST', 'GET'])
+def update_behavior():
     if request.method == 'POST':
         try:
             data = json.loads(request.data)
@@ -35,13 +35,13 @@ def update_handler():
                                'the value should contain a "name" key')
 
         try:
-            current_app.proxy.set_handler(**data)
+            current_app.proxy.set_behavior(**data)
         except KeyError:
             request.errors.add('body', 'name',
-                               "the '%s' handler does not exist" % name)
+                               "the '%s' behavior does not exist" % name)
         return "ok"
     else:
-        return current_app.proxy.get_handler()[1]
+        return current_app.proxy.get_behavior()[1]
 
 
 # utils

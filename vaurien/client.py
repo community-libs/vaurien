@@ -11,43 +11,43 @@ class Client(object):
         self.port = port
         self.scheme = scheme
         self.root_url = '%s://%s:%s' % (scheme, host, port)
-        self.handler_url = self.root_url + '/handler'
-        self.list_handlers_url = self.root_url + '/handlers'
+        self.behavior_url = self.root_url + '/behavior'
+        self.list_behaviors_url = self.root_url + '/behaviors'
 
-    def set_handler(self, handler, **options):
-        options['name'] = handler
-        res = requests.post(self.handler_url, data=json.dumps(options))
+    def set_behavior(self, behavior, **options):
+        options['name'] = behavior
+        res = requests.post(self.behavior_url, data=json.dumps(options))
         res.raise_for_status()
 
-    def get_handler(self):
-        res = requests.get(self.handler_url)
+    def get_behavior(self):
+        res = requests.get(self.behavior_url)
         res.raise_for_status()
         return res.content
 
-    def list_handlers(self):
-        res = requests.get(self.list_handlers_url)
+    def list_behaviors(self):
+        res = requests.get(self.list_behaviors_url)
         res.raise_for_status()
-        return res.json['handlers']
+        return res.json['behaviors']
 
     @contextmanager
-    def with_handler(self, handler, **options):
-        current = self.get_handler()
-        self.set_handler(handler, **options)
+    def with_behavior(self, behavior, **options):
+        current = self.get_behavior()
+        self.set_behavior(behavior, **options)
         try:
             yield
         finally:
-            self.set_handler(current)
+            self.set_behavior(current)
 
 
 def main():
-    """Command-line tool to change the handler that's being used by vaurien"""
+    """Command-line tool to change the behavior that's being used by vaurien"""
     import argparse
-    parser = argparse.ArgumentParser(description='Change the vaurien handler')
+    parser = argparse.ArgumentParser(description='Change the vaurien behavior')
     parser.add_argument('action', help='The action you want to do.',
-                        choices=['list-handlers', 'set-handler',
-                                 'get-handler'])
-    parser.add_argument('handler', nargs='?',
-                        help='The vaurien handler to set for the next calls')
+                        choices=['list-behaviors', 'set-behavior',
+                                 'get-behavior'])
+    parser.add_argument('behavior', nargs='?',
+                        help='The vaurien behavior to set for the next calls')
     parser.add_argument('--host', dest='host', default='http://localhost:8080',
                         help='The host to use. Provide the scheme.')
 
@@ -56,14 +56,14 @@ def main():
     scheme = parts.scheme
     host, port = parts.netloc.split(':', -1)
     client = Client(host, port, scheme)
-    if args.action == 'list-handlers':
-        print ', '.join(client.list_handlers())
-    elif args.action == 'set-handler':
+    if args.action == 'list-behaviors':
+        print ', '.join(client.list_behaviors())
+    elif args.action == 'set-behavior':
         try:
-            client.set_handler(args.handler)
-            print 'Handler changed to "%s"' % args.handler
+            client.set_behavior(args.behavior)
+            print 'Handler changed to "%s"' % args.behavior
         except ValueError:
             print 'The request failed. Please use one of %s' %\
-                ', '.join(client.list_handlers())
-    elif args.action == 'get-handler':
-        print client.get_handler()
+                ', '.join(client.list_behaviors())
+    elif args.action == 'get-behavior':
+        print client.get_behavior()

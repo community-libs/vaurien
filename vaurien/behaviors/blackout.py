@@ -6,7 +6,7 @@ class Blackout(Dummy):
 
     Acts like a *pdb.set_trace()* you'd forgot in your code ;)
     """
-    name = 'hang'
+    name = 'blackout'
     options = {}
 
     def on_before_handle(self, protocol, source, dest, to_backend):
