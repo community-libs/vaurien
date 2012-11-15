@@ -1,7 +1,5 @@
 import unittest
 import requests
-import subprocess
-import sys
 import time
 from StringIO import StringIO
 
@@ -16,7 +14,8 @@ _REQCONFIG = {'verbose': StringIO()}
 
 class TestSimpleProxy(unittest.TestCase):
     def setUp(self):
-        self._proxy_pid = start_proxy(log_output='/dev/null', log_level='error')
+        self._proxy_pid = start_proxy(log_output='/dev/null',
+                                      log_level='error')
         self._web = start_web_server()
         time.sleep(.5)
         try:

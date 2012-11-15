@@ -164,8 +164,6 @@ def main():
         http_server.start()
         logger.info('Started the HTTP server: http://%s:%s' %
                     (args.http_host, args.http_port))
-
-
     else:
         # per default, we want to randomize
         proxy = RandomProxy(**proxy_args)
