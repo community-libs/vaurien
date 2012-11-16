@@ -2,18 +2,19 @@ from vaurien.protocols.tcp import TCP
 
 
 class SMTP(TCP):
-    """SMTP Handler
+    """SMTP Protocol.
 
     """
     name = 'smtp'
     options = TCP.options
-
-    # forcing keep-alive to True
-    options['keep_alive'] = (options['keep_alive'][0],
-                             options['keep_alive'][1],
-                             True)
+    del options['keep_alive']
 
     def update_settings(self, settings):
         if 'keep_alive' in settings:
             del settings['keep_alive']
         super(SMTP, self).update_settings(settings)
+
+    def option(self, name):
+        if name == 'keep_alive':
+            return True
+        return super(SMTP, self).option(name)
