@@ -88,7 +88,7 @@ Let's say you want to add a delay for 20% of the HTTP requests made on
 With this set up, Vaurien will stream all the traffic to **google.com** by using
 the *http* protocol, and will add delays 20% of the time.
 
-You can find a description of all built-in protocols here: :ref:`behaviors`.
+You can find a description of all built-in protocols here: :ref:`protocols`.
 
 You can pass options to the behavior using *--behavior-NAME-OPTION* options::
 
