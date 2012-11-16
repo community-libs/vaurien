@@ -1,7 +1,12 @@
 from abc import ABCMeta, abstractmethod
 
 
-class Handler(object):
+class Protocol(object):
+    """Registry for protocol.
+
+    A protocol is a class that implements a __call__ method.
+    """
+
     __metaclass__ = ABCMeta
     _cache = {}
 
@@ -11,7 +16,7 @@ class Handler(object):
 
     @classmethod
     def __subclasshook__(cls, klass):
-        if cls is Handler:
+        if cls is Protocol:
             for method in cls.__abstractmethods__:
                 if any(method in base.__dict__ for base in klass.__mro__):
                     continue
@@ -33,38 +38,40 @@ class Handler(object):
         return cls._cache[name]
 
     @classmethod
-    def get_handlers(cls):
+    def get_protocols(cls):
         return dict([(klass.name, cls._get_instance(klass))
                      for klass in cls._abc_registry])
 
     @classmethod
-    def get_handler(cls, name):
+    def get_protocol(cls, name):
         for klass in cls._abc_registry:
             if klass.name == name:
                 return cls._get_instance(klass)
         raise KeyError(name)
 
 
-def get_handlers():
-    return Handler.get_handlers()
+def get_protocols():
+    """Return a mapping of all protocols.
+
+    The keys are the protocol names and the values the classes.
+    """
+    return Protocol.get_protocols()
 
 
-def get_handler(name):
-    return Handler.get_handlers(name)()
+def get_protocol(name):
+    """Returns an instance of the given protocol."""
+    return Protocol.get_protocol(name)()
 
 
-# manually register built-in plugins
-from vaurien.handlers.dummy import Dummy
-Handler.register(Dummy)
+# manually register built-in protocols
+from vaurien.protocols.tcp import TCP
+Protocol.register(TCP)
 
-from vaurien.handlers.error import Error
-Handler.register(Error)
+from vaurien.protocols.redis import Redis
+Protocol.register(Redis)
 
-from vaurien.handlers.blackout import Blackout
-Handler.register(Blackout)
+from vaurien.protocols.memcache import Memcache
+Protocol.register(Memcache)
 
-from vaurien.handlers.delay import Delay
-Handler.register(Delay)
-
-from vaurien.handlers.hang import Hang
-Handler.register(Hang)
+from vaurien.protocols.http import Http
+Protocol.register(Http)

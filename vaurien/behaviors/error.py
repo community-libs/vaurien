@@ -1,7 +1,9 @@
 import os
 import random
 
-from vaurien.handlers.dummy import Dummy
+from vaurien.behaviors.dummy import Dummy
+from vaurien.util import get_data
+
 
 _ERRORS = {
     500: ("Internal Server Error",
@@ -61,24 +63,28 @@ class Error(Dummy):
                'warmup': ("Number of calls before erroring out", int, 0)}
     options.update(Dummy.options)
 
-    def __init__(self, settings=None, proxy=None):
-        super(Error, self).__init__(settings, proxy)
+    def __init__(self):
+        super(Error, self).__init__()
         self.current = 0
 
-    def __call__(self, source, dest, to_backend):
-
+    def on_before_handle(self, protocol, source, dest, to_backend):
         if self.current < self.option('warmup'):
             self.current += 1
             return super(Error, self).__call__(source, dest, to_backend)
 
-        data = self._get_data(source)
+        # read the data
+        data = get_data(source)
         if not data:
             return False
 
-        if self.option('http') and to_backend:
+        # error out
+        if protocol.name == 'http' and to_backend:
             # we'll just send back a random error
             source.sendall(random_http_error())
-            return
+            source.close()
+            source._closed = True
+
+            return False
 
         if self.option('inject'):
             if not to_backend:      # back to the client

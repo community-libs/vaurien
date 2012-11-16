@@ -57,10 +57,10 @@ Let's say you want to add a delay for 20% of the requests done on google.com::
 
 
 Vaurien will stream all the traffic to google.com but will add delays 20% of the
-time. You can pass options to the handler using *--handler-NAME-OPTION* options::
+time. You can pass options to the behavior using *--behavior-NAME-OPTION* options::
 
     $ vaurien --proxy localhost:8000 --backend google.com:80 --behavior 20:delay \
-        --handler-delay-sleep 2
+        --behavior-delay-sleep 2
 
 Passing all options through the command-line can be tedious, so you can
 also create a *ini* file for this::
@@ -70,14 +70,14 @@ also create a *ini* file for this::
     proxy = localhost:8000
     behavior = 20:delay
 
-    [handler:delay]
+    [behavior:delay]
     sleep = 2
 
 
 Each behavior applied on the request or response going through Vaurien
-is called a **handler**, and the ini file gets one section per handler.
+is called a **behavior**, and the ini file gets one section per behavior.
 
-You can find a descriptions of all built-in handlers here: :ref:`handlers`.
+You can find a descriptions of all built-in behaviors here: :ref:`behaviors`.
 
 You can also find some examples here: :ref:`examples`.
 
@@ -127,7 +127,7 @@ you can write::
             client = Client()
             options = {'inject': True}
 
-            with client.with_handler('error', **options):
+            with client.with_behavior('error', **options):
                 # do something...
                 pass
 
@@ -138,29 +138,29 @@ In this test, the proxy is started and stopped before and after the
 test, and the Client class will let you drive its behavior.
 
 Within the **with** block, the proxy will error out any call by using
-the *errors* handler, so you can verify that your application is
+the *errors* behavior, so you can verify that your application is
 behaving as expected when it happens.
 
 
 Extending Vaurien
 =================
 
-Vaurien comes with a handful of useful :ref:`handlers`, but you can create your own
-handlers and plug them in a configuration file.
+Vaurien comes with a handful of useful :ref:`behaviors`, but you can create your own
+behaviors and plug them in a configuration file.
 
 In fact that's the best way to create realistic issues. Imagine that you
 have a very specific type of error on your LDAP server everytime your
 infrastructure is under heavy load. You can reproduce this issue in your
-handler and make sure your web application behaves as it should.
+behavior and make sure your web application behaves as it should.
 
-Creating new handlers is done by implementing a class with a specific signature.
+Creating new behaviors is done by implementing a class with a specific signature.
 
 You just have to write a class with a **__call__** method, and register it with
-**Handler.register**::
+**Behavior.register**::
 
-    from vaurien.handlers import Handler
+    from vaurien.behaviors import Behavior
 
-    class MySuperHandler(object):
+    class MySuperBehavior(object):
 
         name = 'super'
         options = {}
@@ -169,7 +169,7 @@ You just have to write a class with a **__call__** method, and register it with
             # do something here
             return True
 
-    Handler.register(MySuperHandler)
+    Behavior.register(MySuperBehavior)
 
 
 More about this in :ref:`extending`.
@@ -192,7 +192,7 @@ Contents:
    :maxdepth: 2
 
    apis
-   handlers
+   behaviors
    extending
    keepalive
    examples

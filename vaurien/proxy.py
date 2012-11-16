@@ -6,19 +6,23 @@ from gevent.server import StreamServer
 from gevent.socket import create_connection
 from gevent.select import select, error
 
-from vaurien.util import parse_address, get_handlers_from_config
-from vaurien.handlers import get_handlers
+from vaurien.util import parse_address, get_behaviors_from_config
+from vaurien.protocols import get_protocols
+from vaurien.behaviors import get_behaviors
+
 from vaurien._pool import FactoryPool
 
 
 class DefaultProxy(StreamServer):
 
-    def __init__(self, proxy, backend, handlers=None, protocol=None,
+    def __init__(self, proxy, backend, protocol='tcp', behaviors=None,
                  settings=None, statsd=None, logger=None, **kwargs):
         self.settings = settings
         cfg = self.settings.getsection('vaurien')
-        if handlers is None:
-            handlers = get_handlers()
+
+        if behaviors is None:
+            behaviors = get_behaviors()
+
         logger.info('Starting the Chaos TCP Server')
         parsed_proxy = parse_address(proxy)
         dest = parse_address(backend)
@@ -29,16 +33,18 @@ class DefaultProxy(StreamServer):
         self._pool = FactoryPool(self._create_connection, self.pool_max_size,
                                  self.pool_timeout)
         self.dest = dest
-        self.prococol = protocol
         self.running = True
         self._statsd = statsd
         self._logger = logger
-        self.handlers = handlers
-        self.handlers.update(get_handlers_from_config(self.settings, logger))
-        self.handler = get_handlers()['dummy']
-        self.handler_name = 'dummy'
+        self.behaviors = behaviors
+        self.behaviors.update(get_behaviors_from_config(self.settings, logger))
+        self.behavior = get_behaviors()['dummy']
+        self.behavior_name = 'dummy'
         self.stay_connected = cfg.get('stay_connected', False)
         self.timeout = cfg.get('timeout', 30)
+        self.protocol = cfg.get('protocol', protocol)
+        self.handler = get_protocols()[self.protocol]
+
         logger.info('Options:')
         logger.info('* proxies from %s to %s' % (proxy, backend))
         logger.info('* timeout: %d' % self.timeout)
@@ -53,20 +59,19 @@ class DefaultProxy(StreamServer):
             conn.setblocking(0)
         return conn
 
-    def get_handler(self):
-        return self.handler, self.handler_name
+    def get_behavior(self):
+        return self.behavior, self.behavior_name
 
-    def get_handler_names(self):
-        keys = get_handlers().keys()
+    def get_behavior_names(self):
+        keys = get_behaviors().keys()
         keys.sort()
         return keys
 
     def handle(self, client_sock, address):
         client_sock.setblocking(0)
-        handler, handler_name = self.get_handler()
-        handler.proxy = self
-        handler.logger = self._logger
-        statsd_prefix = '%s.%s.' % (handler_name, uuid4())
+        behavior, behavior_name = self.get_behavior()
+
+        statsd_prefix = '%s.%s.' % (self.protocol, uuid4())
         self.statsd_incr(statsd_prefix + 'start')
 
         try:
@@ -81,11 +86,11 @@ class DefaultProxy(StreamServer):
                         backend_sock._closed = True
                         return
 
-                    greens = [gevent.spawn(self._weirdify, handler,
+                    greens = [gevent.spawn(self._weirdify,
                                            client_sock, backend_sock,
                                            sock is not backend_sock,
-                                           handler_name,
-                                           statsd_prefix)
+                                           statsd_prefix,
+                                           behavior, behavior_name)
                               for sock in rlist]
 
                     res = [green.get() for green in greens]
@@ -105,8 +110,8 @@ class DefaultProxy(StreamServer):
         elif self._logger:
             self._logger.info(counter)
 
-    def _weirdify(self, handler, client_sock, backend_sock, to_backend,
-                  handler_name, statsd_prefix):
+    def _weirdify(self, client_sock, backend_sock, to_backend,
+                  statsd_prefix, behavior, behavior_name):
         """This is where all the magic happens.
 
         Depending the configuration, we will chose to either drop packets,
@@ -125,15 +130,17 @@ class DefaultProxy(StreamServer):
         try:
             # XXX cache this ?
             args = self.settings['args']
-            handler_settings = {}
-            prefix = 'handler_%s_' % handler_name
+            behavior_settings = {}
+            prefix = 'behavior_%s_' % behavior_name
             for arg in dir(args):
                 if not arg.startswith(prefix):
                     continue
-                handler_settings[arg[len(prefix):]] = getattr(args, arg)
+                behavior_settings[arg[len(prefix):]] = getattr(args, arg)
 
-            handler.update_settings(handler_settings)
-            return handler(source, dest, to_backend)
+            behavior.update_settings(behavior_settings)
+
+            # calling the handler
+            return self.handler(source, dest, to_backend, behavior)
         finally:
             self._logger.debug('exiting weirdify %s' % to_backend)
 
@@ -155,16 +162,16 @@ class RandomProxy(DefaultProxy):
             if len(choice) != 2:
                 raise ValueError('You need to use name:percentage')
 
-            percent, handler_name = choice
+            percent, behavior_name = choice
             percent = int(percent)
-            if handler_name not in self.handlers:
-                choices = self.handlers.keys()
-                msg = "%r is an unknown handler. Pick one of: %s."
-                raise ValueError(msg % (handler_name,
+            if behavior_name not in self.behaviors:
+                choices = self.behaviors.keys()
+                msg = "%r is an unknown behavior. Pick one of: %s."
+                raise ValueError(msg % (behavior_name,
                                         ', '.join(['%r' % choice
                                                    for choice in choices])))
 
-            choices[handler_name] = self.handlers[handler_name], percent
+            choices[behavior_name] = self.behaviors[behavior_name], percent
             total += percent
 
         if total > 100:
@@ -174,24 +181,22 @@ class RandomProxy(DefaultProxy):
             if 'dummy' in choices:
                 choices['dummy'][1] += missing
             else:
-                choices['dummy'] = get_handlers()['dummy'], missing
+                choices['dummy'] = get_behaviors()['dummy'], missing
 
-        for name, (handler, percent) in choices.items():
+        for name, (behavior, percent) in choices.items():
             self.choices.extend(
-                [(self.handlers[name], name) for i in range(percent)])
+                [(self.behaviors[name], name) for i in range(percent)])
 
-    def get_handler(self):
+    def get_behavior(self):
         return random.choice(self.choices)
 
 
 class OnTheFlyProxy(DefaultProxy):
 
-    def set_handler(self, **options):
-        handler_name = options.pop('name')
-        self.handler = self.handlers[handler_name]
-        self.handler_name = handler_name
-
+    def set_behavior(self, **options):
+        behavior_name = options.pop('name')
+        self.behavior = self.behaviors[behavior_name]
+        self.behavior_name = behavior_name
         for name, value in options.items():
-            self.handler.settings[name] = value
-
-        self._logger.info('Handler changed to "%s"' % handler_name)
+            self.behavior.settings[name] = value
+        self._logger.info('Handler changed to "%s"' % behavior_name)

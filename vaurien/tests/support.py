@@ -9,23 +9,23 @@ from gevent.wsgi import WSGIServer
 class FakeProxy(object):
     """Fake proxy object, to mock the proxy in the tests"""
 
-    def __init__(self, handlers=None):
-        self.handlers = handlers or ['default', 'blackout']
-        self.handler = 'default'
-        self.handler_options = {}
+    def __init__(self, behaviors=None):
+        self.behaviors = behaviors or ['default', 'blackout']
+        self.behavior = 'default'
+        self.behavior_options = {}
 
-    def get_handler(self):
+    def get_behavior(self):
         # return None as a callable, since this is for tests only.
-        return None, self.handler
+        return None, self.behavior
 
-    def set_handler(self, name, **options):
-        if name not in self.handlers:
+    def set_behavior(self, name, **options):
+        if name not in self.behaviors:
             raise KeyError(name)
-        self.handler = name
-        self.handler_options = options
+        self.behavior = name
+        self.behavior_options = options
 
-    def get_handler_names(self):
-        return self.handlers
+    def get_behavior_names(self):
+        return self.behaviors
 
 
 def start_vaurien_httpserver(port):

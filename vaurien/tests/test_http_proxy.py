@@ -13,18 +13,16 @@ _SERVER = [sys.executable, '-m', 'SimpleHTTPServer', '8888']
 
 
 # we should provide a way to set an option
-# for all handlers at once
+# for all behaviors at once
 #
-_OPTIONS = ['--handler-delay-protocol', 'http',
-            '--handler-delay-sleep', '1',
-            '--handler-dummy-protocol', 'http',
-            ]
+_OPTIONS = ['--behavior-delay-sleep', '1' ]
 
 
 class TestHttpProxy(unittest.TestCase):
     def setUp(self):
         self._proxy_pid = start_proxy(options=_OPTIONS, log_level='error',
-                                      log_output='/dev/null')
+                                      log_output='/dev/null',
+                                      protocol='http')
         self._web = start_simplehttp_server()
         time.sleep(.3)
         try:
@@ -33,7 +31,7 @@ class TestHttpProxy(unittest.TestCase):
 
             self.client = Client()
 
-            assert self.client.get_handler() == 'dummy'
+            assert self.client.get_behavior() == 'dummy'
         except Exception:
             self.tearDown()
             raise
@@ -44,7 +42,7 @@ class TestHttpProxy(unittest.TestCase):
 
     def test_proxy(self):
         # let's do a few simple request first to make sure the proxy works
-        self.assertEqual(self.client.get_handler(), 'dummy')
+        self.assertEqual(self.client.get_behavior(), 'dummy')
         times = []
 
         for i in range(10):
@@ -58,13 +56,13 @@ class TestHttpProxy(unittest.TestCase):
 
         fastest = min(times)
 
-        # now let's try the various handlers
-        with self.client.with_handler('blackout'):
+        # now let's try the various behaviors
+        with self.client.with_behavior('blackout'):
             # oh look we broke it
             self.assertRaises(requests.ConnectionError, requests.get, _PROXY)
-            self.assertEqual(self.client.get_handler(), 'blackout')
+            self.assertEqual(self.client.get_behavior(), 'blackout')
 
-        with self.client.with_handler('delay'):
+        with self.client.with_behavior('delay'):
             # should work but be slower
             start = time.time()
             try:
@@ -76,6 +74,6 @@ class TestHttpProxy(unittest.TestCase):
             self.assertTrue(duration > fastest + 1)
 
         # we should be back to normal
-        self.assertEqual(self.client.get_handler(), 'dummy')
+        self.assertEqual(self.client.get_behavior(), 'dummy')
         res = requests.get(_PROXY)
         self.assertEqual(res.status_code, 200)
