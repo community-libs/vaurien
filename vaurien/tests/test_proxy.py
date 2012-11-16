@@ -24,7 +24,7 @@ class TestSimpleProxy(unittest.TestCase):
 
             self.client = Client()
 
-            assert self.client.get_handler() == 'dummy'
+            assert self.client.get_behavior() == 'dummy'
         except Exception:
             self.tearDown()
             raise
@@ -33,25 +33,25 @@ class TestSimpleProxy(unittest.TestCase):
         stop_proxy(self._proxy_pid)
         self._web.terminate()
 
-    def test_existing_handlers(self):
+    def test_existing_behaviors(self):
         wanted = ['blackout', 'delay', 'dummy', 'error', 'hang']
-        self.assertEqual(self.client.list_handlers(), wanted)
+        self.assertEqual(self.client.list_behaviors(), wanted)
 
     def test_proxy(self):
         # let's do a few simple request first to make sure the proxy works
-        self.assertEqual(self.client.get_handler(), 'dummy')
+        self.assertEqual(self.client.get_behavior(), 'dummy')
         for i in range(10):
             res = requests.get(_PROXY, config=_REQCONFIG)
             self.assertEqual(res.status_code, 200)
 
         # now let's add a bit of havoc
-        with self.client.with_handler('blackout'):
+        with self.client.with_behavior('blackout'):
             # oh look we broke it
             self.assertRaises(requests.ConnectionError, requests.get, _PROXY,
                               config=_REQCONFIG)
-            self.assertEqual(self.client.get_handler(), 'blackout')
+            self.assertEqual(self.client.get_behavior(), 'blackout')
 
         # we should be back to normal
-        self.assertEqual(self.client.get_handler(), 'dummy')
+        self.assertEqual(self.client.get_behavior(), 'dummy')
         res = requests.get(_PROXY, config=_REQCONFIG)
         self.assertEqual(res.status_code, 200)

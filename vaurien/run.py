@@ -6,7 +6,8 @@ import logging
 from vaurien.proxy import OnTheFlyProxy, RandomProxy
 from vaurien.config import load_into_settings, DEFAULT_SETTINGS
 from vaurien import __version__, logger
-from vaurien.handlers import get_handlers
+from vaurien.behaviors import get_behaviors
+from vaurien.protocols import get_protocols
 
 
 LOG_LEVELS = {
@@ -70,6 +71,9 @@ def main():
     parser.add_argument('--http-port', default=8080, type=int,
                         help='Port of the http server, if any')
 
+    parser.add_argument('--protocol', default='tcp', choices=get_protocols(),
+                        help='Protocol used')
+
     # get the values from the default config
     defaults = DEFAULT_SETTINGS.items()
     defaults.sort()
@@ -94,7 +98,7 @@ def main():
                         help="log output")
 
     # now for each registered handler, we are going to provide its options
-    for name, klass in get_handlers().items():
+    for name, klass in get_behaviors().items():
         for option_name, option in klass.options.items():
             if len(option) == 3:
                 description, type_, default = option
@@ -102,8 +106,8 @@ def main():
             else:
                 description, type_, default, choices = option
 
-            option_name = '--handler-%s-%s' % (name,
-                                               option_name.replace('_', '-'))
+            option_name = '--behavior-%s-%s' % (name,
+                                                option_name.replace('_', '-'))
             if type_ is bool:
                 kws = {'action': default and 'store_true' or 'store_false'}
             else:
@@ -157,7 +161,8 @@ def main():
     # creating the proxy
     proxy_args = dict(proxy=settings['vaurien.proxy'],
                       backend=settings['vaurien.backend'],
-                      settings=settings, statsd=statsd, logger=logger)
+                      settings=settings, statsd=statsd, logger=logger,
+                      protocol=args.protocol)
 
     if args.http:
         # if we are using the http server, then we want to use the OnTheFly

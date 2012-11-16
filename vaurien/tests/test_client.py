@@ -20,28 +20,28 @@ class TestClient(TestCase):
         self.process.terminate()
         self.process.wait()
 
-    def test_set_valid_handler(self):
+    def test_set_valid_behavior(self):
         # check that we don't raise
-        self.client.set_handler('blackout')
+        self.client.set_behavior('blackout')
 
-    def test_set_invlid_handler(self):
-        self.assertRaises(ValueError, self.client.set_handler,
-                          'invalid_handler')
+    def test_set_invlid_behavior(self):
+        self.assertRaises(ValueError, self.client.set_behavior,
+                          'invalid_behavior')
 
-    def test_get_default_handler(self):
-        # this should return the default handler
-        self.assertEquals(self.client.get_handler(), 'default')
+    def test_get_default_behavior(self):
+        # this should return the default behavior
+        self.assertEquals(self.client.get_behavior(), 'default')
 
-    def test_set_and_get_handler(self):
-        # after setting up the handler, we should retrieve the informations
+    def test_set_and_get_behavior(self):
+        # after setting up the behavior, we should retrieve the informations
         # here
-        self.client.set_handler('blackout')
-        self.assertEquals(self.client.get_handler(), 'blackout')
+        self.client.set_behavior('blackout')
+        self.assertEquals(self.client.get_behavior(), 'blackout')
 
-    def test_set_handler_with_options(self):
-        self.client.set_handler('blackout', foo='foo', bar='bar')
-        self.assertEquals(self.client.get_handler(), 'blackout')
+    def test_set_behavior_with_options(self):
+        self.client.set_behavior('blackout', foo='foo', bar='bar')
+        self.assertEquals(self.client.get_behavior(), 'blackout')
 
-    def test_list_handlers(self):
-        self.assertEquals(self.client.list_handlers(),
+    def test_list_behaviors(self):
+        self.assertEquals(self.client.list_behaviors(),
                           ['default', 'blackout'])
