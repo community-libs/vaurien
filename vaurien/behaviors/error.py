@@ -74,7 +74,8 @@ class Error(Dummy):
     def on_before_handle(self, protocol, source, dest, to_backend):
         if self.current < self.option('warmup'):
             self.current += 1
-            return super(Error, self).__call__(source, dest, to_backend)
+            return super(Error, self).on_before_handle(protocol, source,
+                                                       dest, to_backend)
 
         # read the data
         data = get_data(source)
