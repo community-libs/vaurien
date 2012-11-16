@@ -1,29 +1,51 @@
 import os
 
 from vaurien.behaviors import get_behaviors
+from vaurien.protocols import get_protocols
 
 
-_HEADER = """\
+_BEHAVIOR = """\
 
 .. _behaviors:
 
-Handlers
-========
+Behaviors
+=========
 
 Vaurien provides a collections of behaviors.
 
 """
 
 
+_PROTO = """\
+
+.. _protocols:
+
+Protocols
+=========
+
+Vaurien provides a collections of protocols.
+
+"""
+
+
 def generate_behaviors(app):
-    path = os.path.join(app.srcdir, 'behaviors')
+    return generate_plugins_doc(app, 'behaviors', get_behaviors().items(),
+                                _BEHAVIOR)
+
+
+def generate_protocols(app):
+    return generate_plugins_doc(app, 'protocols', get_protocols().items(),
+                                _PROTO)
+
+
+def generate_plugins_doc(app, name, items, tmpl):
+    path = os.path.join(app.srcdir, name)
     ext = app.config['source_suffix']
-    filename = os.path.join(app.srcdir, "behaviors%s" % ext)
-    items = get_behaviors().items()
+    filename = os.path.join(app.srcdir, "%s%s" % (name, ext))
     items.sort()
 
     with open(filename, "w") as doc:
-        doc.write(_HEADER)
+        doc.write(tmpl)
 
         for name, klass in items:
             doc.write(name + '\n')
@@ -54,11 +76,14 @@ def generate_behaviors(app):
                     desc = pattern % (desc, type_.__name__, default, choices)
 
                 doc.write('- **%s**: %s\n' % (name, desc))
-
             doc.write("\n\n")
-
         doc.write("\n")
 
 
+def generate_doc(app):
+    generate_behaviors(app)
+    generate_protocols(app)
+
+
 def setup(app):
-    app.connect('builder-inited', generate_behaviors)
+    app.connect('builder-inited', generate_doc)

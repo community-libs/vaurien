@@ -40,10 +40,37 @@ through the command-line.
 Installing Vaurien
 ==================
 
-You can install Vaurien directly from PyPI; the best way to do so is via
+You can install Vaurien directly from PyPI. The best way to do so is via
 `pip`::
 
     $ pip install vaurien
+
+
+Design
+======
+
+Vaurien is a TCP proxy that simply reads data sent to it and pass it to a
+backend, and vice-versa.
+
+It has built-in **protocols**: Tcp, Http, Redis & Memcache. The **Tcp** protocol
+is the default one and just sucks data on both sides and pass it along.
+
+Having higher-level protocols is mandatory in some cases, when Vaurien needs to
+read a specific amount of data in the sockets, or when you need to be aware
+of the kind of response you're waiting for, and so on.
+
+Vaurien also has **behaviors**. A behavior is a class that's going to be
+invoked everytime Vaurien proxies a request. That's how you can impact the
+behavior of the proxy. For instance, adding a delay or degrading the response
+can be implemented in a behavior.
+
+Both **protocols** and **behaviors** are plugins, allowing you to extend Vaurien
+by adding new ones.
+
+Last, but not least, Vaurien provides a couple of APIs you can use to
+change the behavior of the proxy live. That's handy when you are doing
+functional tests against your server: you can for instance start to add
+big delays and see how your web application reacts.
 
 
 Using Vaurien from the command-line
@@ -51,35 +78,41 @@ Using Vaurien from the command-line
 
 Vaurien is a command-line tool.
 
-Let's say you want to add a delay for 20% of the requests done on google.com::
+Let's say you want to add a delay for 20% of the HTTP requests made on
+**google.com**::
 
-    $ vaurien --proxy localhost:8000 --backend google.com:80 --behavior 20:delay
+    $ vaurien --protocol http --proxy localhost:8000 --backend google.com:80 \
+            --behavior 20:delay
 
 
-Vaurien will stream all the traffic to google.com but will add delays 20% of the
-time. You can pass options to the behavior using *--behavior-NAME-OPTION* options::
+With this set up, Vaurien will stream all the traffic to **google.com** by using
+the *http* protocol, and will add delays 20% of the time.
 
-    $ vaurien --proxy localhost:8000 --backend google.com:80 --behavior 20:delay \
+You can find a description of all built-in protocols here: :ref:`behaviors`.
+
+You can pass options to the behavior using *--behavior-NAME-OPTION* options::
+
+    $ vaurien --protocol http --proxy localhost:8000 --backend google.com:80 \
+        --behavior 20:delay \
         --behavior-delay-sleep 2
 
+
 Passing all options through the command-line can be tedious, so you can
-also create a *ini* file for this::
+also create an *ini* file for this::
 
     [vaurien]
     backend = google.com:80
     proxy = localhost:8000
+    protocol = http
     behavior = 20:delay
 
     [behavior:delay]
     sleep = 2
 
 
-Each behavior applied on the request or response going through Vaurien
-is called a **behavior**, and the ini file gets one section per behavior.
+You can find a description of all built-in behaviors here: :ref:`behaviors`.
 
-You can find a descriptions of all built-in behaviors here: :ref:`behaviors`.
-
-You can also find some examples here: :ref:`examples`.
+You can also find some usage examples here: :ref:`examples`.
 
 
 Controlling Vaurien live
@@ -145,18 +178,22 @@ behaving as expected when it happens.
 Extending Vaurien
 =================
 
-Vaurien comes with a handful of useful :ref:`behaviors`, but you can create your own
-behaviors and plug them in a configuration file.
+Vaurien comes with a handful of useful :ref:`behaviors` and :ref:`protocols`,
+but you can create your own ones and plug them in a configuration file.
 
 In fact that's the best way to create realistic issues. Imagine that you
 have a very specific type of error on your LDAP server everytime your
 infrastructure is under heavy load. You can reproduce this issue in your
 behavior and make sure your web application behaves as it should.
 
-Creating new behaviors is done by implementing a class with a specific signature.
+Creating new behaviors and protocols is done by implementing classes with
+specific signatures.
 
-You just have to write a class with a **__call__** method, and register it with
-**Behavior.register**::
+For example if you want to create a **super** behavior, you just have
+to write a class with two special methods: **on_before_handle** and
+**on_after_handle**.
+
+Once the class is ready, you can register it with **Behavior.register**::
 
     from vaurien.behaviors import Behavior
 
@@ -165,23 +202,28 @@ You just have to write a class with a **__call__** method, and register it with
         name = 'super'
         options = {}
 
-        def __call__(self, client_sock, backend_sock, to_backend):
+        def on_before_handle(self, protocol, source, dest, to_backend):
             # do something here
+            return True
+
+         def on_after_handle(self, protocol, source, dest, to_backend):
+            # do something else
             return True
 
     Behavior.register(MySuperBehavior)
 
 
-More about this in :ref:`extending`.
+You will find a full tutorial in :ref:`extending`.
 
 
-Code repository
-===============
+Contribute
+==========
 
-If you're interested to look at the code, it's there:
+The code repository & bug tracker are located at
 https://github.com/mozilla-services/vaurien
 
-Don't hesitate to send us pull requests or to open issues!
+Don't hesitate to send us pull requests or open issues!
+
 
 More documentation
 ==================
@@ -193,6 +235,7 @@ Contents:
 
    apis
    behaviors
+   protocols
    extending
    keepalive
    examples

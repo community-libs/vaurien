@@ -1,13 +1,24 @@
 .. _extending:
 
-Writing Handlers
-================
+Extending Vaurien
+=================
 
 .. note::
 
    Before reading this section, make sure you read :ref:`keep`
 
-XXX need full rewrite
+
+You can extend Vaurien by writing new **protocols** or new **behaviors**.
+
+
+Writing Protocols
+-----------------
+
+XXX
+
+
+Writing Handlers
+----------------
 
 Creating new handlers is done by implementing a class with a specific
 signature::
