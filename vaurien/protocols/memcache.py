@@ -13,7 +13,7 @@ CRLF = '\r\n'
 
 
 class Memcache(BaseProtocol):
-    """HTTP handler.
+    """Memcache protocol.
     """
     name = 'memcache'
 

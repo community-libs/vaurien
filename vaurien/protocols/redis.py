@@ -13,7 +13,7 @@ CRLF = '\r\n'
 
 
 class Redis(BaseProtocol):
-    """HTTP handler.
+    """Redis protocol.
     """
     name = 'redis'
 

@@ -13,7 +13,7 @@ CRLF = '\r\n'
 
 
 class Http(BaseProtocol):
-    """HTTP handler.
+    """HTTP protocol.
     """
     name = 'http'
 

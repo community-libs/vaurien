@@ -13,7 +13,7 @@ CRLF = '\r\n'
 
 
 class TCP(BaseProtocol):
-    """HTTP handler.
+    """TCP handler.
     """
     name = 'tcp'
 
