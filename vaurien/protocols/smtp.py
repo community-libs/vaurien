@@ -1,3 +1,4 @@
+import copy
 from vaurien.protocols.tcp import TCP
 
 
@@ -6,7 +7,7 @@ class SMTP(TCP):
 
     """
     name = 'smtp'
-    options = TCP.options
+    options = copy.copy(TCP.options)
     del options['keep_alive']
 
     def update_settings(self, settings):
