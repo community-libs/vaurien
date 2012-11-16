@@ -50,7 +50,7 @@ APIs
 
 
 Command line
-============
+------------
 
 You can use these APIs directly from the command-line using the **vaurienctl**
 CLI tool.

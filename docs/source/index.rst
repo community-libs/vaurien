@@ -231,9 +231,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   apis
    behaviors
    protocols
+   apis
    extending
    keepalive
    examples
