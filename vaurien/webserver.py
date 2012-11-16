@@ -39,9 +39,9 @@ def update_behavior():
         except KeyError:
             request.errors.add('body', 'name',
                                "the '%s' behavior does not exist" % name)
-        return "ok"
+        return jsonify(status='ok')
     else:
-        return current_app.proxy.get_behavior()[1]
+        return jsonify(behavior=current_app.proxy.get_behavior()[1])
 
 
 # utils
@@ -71,17 +71,18 @@ def convert_errors(sender, response, **extra):
     if len(request.errors) > 0:
         response.data = json.dumps({'status': 'error',
                                     'errors': request.errors})
-        response.content_type = 'application/json'
         response.status_code = request.errors.status
-
-
-request_started.connect(add_errors, api)
-request_finished.connect(convert_errors, api)
+    # as we always answer in json for now...
+    response.content_type = 'application/json'
 
 
 def create_app(debug=False):
     app = Flask(__name__)
     app.register_blueprint(api)
+
+    request_started.connect(add_errors, app)
+    request_finished.connect(convert_errors, app)
+
     if debug:
         app.debug = True
     return app

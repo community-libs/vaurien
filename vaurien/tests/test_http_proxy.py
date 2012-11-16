@@ -5,7 +5,7 @@ import time
 
 from vaurien.client import Client
 from vaurien.util import start_proxy, stop_proxy
-from vaurien.tests.util import start_web_server
+from vaurien.tests.support import start_simplehttp_server
 
 
 _PROXY = 'http://localhost:8000'
@@ -23,8 +23,8 @@ class TestHttpProxy(unittest.TestCase):
         self._proxy_pid = start_proxy(options=_OPTIONS, log_level='error',
                                       log_output='/dev/null',
                                       protocol='http')
-        self._web = start_web_server()
-        time.sleep(.5)
+        self._web = start_simplehttp_server()
+        time.sleep(.3)
         try:
             if self._web.poll():
                 raise ValueError("Could not start the proxy")
