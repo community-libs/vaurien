@@ -101,7 +101,7 @@ def parse_address(address):
     return gethostbyname(hostname), port
 
 
-def get_behaviors_from_config(settings, logger=None):
+def get_prefixed_sections(settings, prefix, logger=None):
     """Return a dict containing all the behaviors that are defined in the
     settings, in addition to all the behaviors of vaurien
     """
@@ -110,17 +110,17 @@ def get_behaviors_from_config(settings, logger=None):
         from vaurien import logger
 
     for section in settings.sections():
-        if section.startswith('behavior.'):
-            behavior_name = section[len('behavior.'):]
+        if section.startswith('%s.' % prefix):
+            prefixed_name = section[len('%s.' % prefix):]
 
             # have a look if we have a section named behavior:{behavior}
-            settings = settings.getsection('behavior.%s' % behavior_name)
-            behavior_location = settings.get('callable', None)
-            if not behavior_location:
-                logger.warning('callable not found for %s' % behavior_name)
+            settings = settings.getsection('%s.%s' % (prefix, prefixed_name))
+            prefixed_location = settings.get('callable', None)
+            if not prefixed_location:
+                logger.warning('callable not found for %s' % prefixed_name)
                 continue
-            behavior = import_string(behavior_location)
-            behaviors[behavior_name] = behavior
+            behavior = import_string(prefixed_location)
+            behaviors[prefixed_name] = behavior
     return behaviors
 
 
@@ -185,3 +185,15 @@ def get_data(sock, buffer=1024):
         # XXX on 35 we should retry
         data = ''
     return data
+
+
+def extract_settings(args, prefix, name):
+    settings = {}
+    prefix = '%s_%s_' % (prefix, name)
+
+    for arg in dir(args):
+        if not arg.startswith(prefix):
+            continue
+        settings[arg[len(prefix):]] = getattr(args, arg)
+
+    return settings

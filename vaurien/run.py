@@ -57,6 +57,30 @@ def get_statsd_from_settings(settings):
     return statsd
 
 
+def build_args(parser, items, prefix):
+    for name, klass in items:
+        for option_name, option in klass.options.items():
+            if len(option) == 3:
+                description, type_, default = option
+                choices = None
+            else:
+                description, type_, default, choices = option
+
+            option_name = '--%s-%s-%s' % (prefix, name,
+                                          option_name.replace('_', '-'))
+            if type_ is bool:
+                kws = {'action': 'store_true'}
+            else:
+                kws = {'action': 'store', 'type': type_}
+
+            if choices is not None:
+                kws = {'choices': choices}
+
+            parser.add_argument(option_name, default=default,
+                                help=description, **kws)
+
+
+
 def main():
     parser = argparse.ArgumentParser(description='Runs a Chaos TCP proxy.')
 
@@ -97,28 +121,13 @@ def main():
     parser.add_argument('--log-output', dest='logoutput', default='-',
                         help="log output")
 
-    # now for each registered handler, we are going to provide its options
-    for name, klass in get_behaviors().items():
-        for option_name, option in klass.options.items():
-            if len(option) == 3:
-                description, type_, default = option
-                choices = None
-            else:
-                description, type_, default, choices = option
+    # now for each registered behavior, we are going to provide its options
+    build_args(parser, get_behaviors().items(), 'behavior')
 
-            option_name = '--behavior-%s-%s' % (name,
-                                                option_name.replace('_', '-'))
-            if type_ is bool:
-                kws = {'action': default and 'store_true' or 'store_false'}
-            else:
-                kws = {'action': 'store', 'type': type_}
+    # same thing for the protocols
+    build_args(parser, get_protocols().items(), 'protocol')
 
-            if choices is not None:
-                kws = {'choices': choices}
-
-            parser.add_argument(option_name, default=default,
-                                help=description, **kws)
-
+    # parsing the provided args
     args = parser.parse_args()
 
     if args.version:
@@ -155,7 +164,6 @@ def main():
 
     # pass the args in the settings
     settings['args'] = args
-
     statsd = get_statsd_from_settings(settings.getsection('statsd'))
 
     # creating the proxy

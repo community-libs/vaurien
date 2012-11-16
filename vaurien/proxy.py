@@ -6,7 +6,7 @@ from gevent.server import StreamServer
 from gevent.socket import create_connection
 from gevent.select import select, error
 
-from vaurien.util import parse_address, get_behaviors_from_config
+from vaurien.util import parse_address, get_prefixed_sections, extract_settings
 from vaurien.protocols import get_protocols
 from vaurien.behaviors import get_behaviors
 
@@ -37,13 +37,25 @@ class DefaultProxy(StreamServer):
         self._statsd = statsd
         self._logger = logger
         self.behaviors = behaviors
-        self.behaviors.update(get_behaviors_from_config(self.settings, logger))
+        self.behaviors.update(get_prefixed_sections(self.settings, logger,
+                                                    'behavior'))
         self.behavior = get_behaviors()['dummy']
         self.behavior_name = 'dummy'
         self.stay_connected = cfg.get('stay_connected', False)
         self.timeout = cfg.get('timeout', 30)
         self.protocol = cfg.get('protocol', protocol)
-        self.handler = get_protocols()[self.protocol]
+
+        # creating the handler with the passed options
+        protocols = get_protocols()
+        protocols.update(get_prefixed_sections(self.settings, logger,
+                                               'protocol'))
+
+        self.handler = protocols[self.protocol]
+
+        # updating the handler settings
+        args = settings['args']
+        self.handler.update_settings(extract_settings(args, 'protocol',
+                                                      self.protocol))
 
         logger.info('Options:')
         logger.info('* proxies from %s to %s' % (proxy, backend))
@@ -84,7 +96,7 @@ class DefaultProxy(StreamServer):
                     except error:
                         backend_sock.close()
                         backend_sock._closed = True
-                        return
+                        break
 
                     greens = [gevent.spawn(self._weirdify,
                                            client_sock, backend_sock,
@@ -98,8 +110,11 @@ class DefaultProxy(StreamServer):
                     got_data = all(res) and len(res) > 0
 
                     if not got_data and not self.stay_connected:
-                        return
+                        break
 
+                if not self.handler.settings['reuse_socket']:
+                    backend_sock.close()
+                    backend_sock._closed = True
         finally:
             self.statsd_incr(statsd_prefix + 'end')
             client_sock.close()
@@ -130,15 +145,8 @@ class DefaultProxy(StreamServer):
         try:
             # XXX cache this ?
             args = self.settings['args']
-            behavior_settings = {}
-            prefix = 'behavior_%s_' % behavior_name
-            for arg in dir(args):
-                if not arg.startswith(prefix):
-                    continue
-                behavior_settings[arg[len(prefix):]] = getattr(args, arg)
-
-            behavior.update_settings(behavior_settings)
-
+            behavior.update_settings(extract_settings(args, 'behavior',
+                                                      behavior_name))
             # calling the handler
             return self.handler(source, dest, to_backend, behavior)
         finally:

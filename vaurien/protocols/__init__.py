@@ -75,3 +75,6 @@ Protocol.register(Memcache)
 
 from vaurien.protocols.http import Http
 Protocol.register(Http)
+
+from vaurien.protocols.smtp import SMTP
+Protocol.register(SMTP)
