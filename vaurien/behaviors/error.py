@@ -47,8 +47,12 @@ def random_http_error():
 
 
 class Error(Dummy):
-    """Reads the packets that have been sent then send random data in
-    the socket.
+    """Reads the packets that have been sent then send back "errors".
+
+    Used in cunjunction with the HTTP Procotol, it will randomly send back
+    a 501, 502 or 503.
+
+    For other protocols, it returns random data.
 
     The *inject* option can be used to inject data within valid data received
     from the backend. The Warmup option can be used to deactivate the random
@@ -56,7 +60,7 @@ class Error(Dummy):
     communication to settle in some speficic protocols before the ramdom
     data is injected.
 
-    The *inject* option is deactivated when the *http* option is used.
+    The *inject* option is deactivated when the *http* protocol is used.
     """
     name = 'error'
     options = {'inject': ("Inject errors inside valid data", bool, False),
@@ -83,7 +87,6 @@ class Error(Dummy):
             source.sendall(random_http_error())
             source.close()
             source._closed = True
-
             return False
 
         if self.option('inject'):
