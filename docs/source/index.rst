@@ -132,8 +132,8 @@ the **--http-host** and **--http-port** options.
 See :ref:`apis` for a full list of APIs.
 
 
-Controlling Vaurien in your code
-================================
+Controlling Vaurien from your code
+==================================
 
 If you want to run and drive a Vaurien proxy from your code, the project
 provides a few helpers for this.
