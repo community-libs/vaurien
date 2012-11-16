@@ -1,25 +1,25 @@
 import os
 
-from vaurien.handlers import get_handlers
+from vaurien.behaviors import get_behaviors
 
 
 _HEADER = """\
 
-.. _handlers:
+.. _behaviors:
 
 Handlers
 ========
 
-Vaurien provides a collections of handlers.
+Vaurien provides a collections of behaviors.
 
 """
 
 
-def generate_handlers(app):
-    path = os.path.join(app.srcdir, 'handlers')
+def generate_behaviors(app):
+    path = os.path.join(app.srcdir, 'behaviors')
     ext = app.config['source_suffix']
-    filename = os.path.join(app.srcdir, "handlers%s" % ext)
-    items = get_handlers().items()
+    filename = os.path.join(app.srcdir, "behaviors%s" % ext)
+    items = get_behaviors().items()
     items.sort()
 
     with open(filename, "w") as doc:
@@ -61,4 +61,4 @@ def generate_handlers(app):
 
 
 def setup(app):
-    app.connect('builder-inited', generate_handlers)
+    app.connect('builder-inited', generate_behaviors)
