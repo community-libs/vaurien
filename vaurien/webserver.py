@@ -33,13 +33,17 @@ def update_behavior():
         except KeyError:
             request.errors.add('body', '',
                                'the value should contain a "name" key')
+        else:
+            try:
+                current_app.proxy.set_behavior(**data)
+            except KeyError:
+                request.errors.add('body', 'name',
+                                "the '%s' behavior does not exist" % name)
 
-        try:
-            current_app.proxy.set_behavior(**data)
-        except KeyError:
-            request.errors.add('body', 'name',
-                               "the '%s' behavior does not exist" % name)
-        return jsonify(status='ok')
+        if len(request.errors) == 0:
+            return jsonify(status='ok')
+        else:
+            return jsonify(status='error')
     else:
         return jsonify(behavior=current_app.proxy.get_behavior()[1])
 

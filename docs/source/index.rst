@@ -118,20 +118,18 @@ You can also find some usage examples here: :ref:`examples`.
 Controlling Vaurien live
 ========================
 
-Sometimes, it is useful to control live the proxy, so you can change its
-behavior live between client calls.
 
 Vaurien provides an HTTP server with a few APIs, which can be used to control
-the proxy.
+the proxy and change its behavior on the fly.
 
 To activate it, use the `--http` option::
 
     $ vaurien --http
 
-By default the server runs on port **8080** while the proxy runs on **8000**
+By default the server runs on **locahost:8080** but you can change it with
+the **--http-host** and **--http-port** options.
 
-Once it runs, you can call it using cURL or any HTTP client. See the
-:ref:`apis`.
+See :ref:`apis` for a full list of APIs.
 
 
 Controlling Vaurien in your code

@@ -4,51 +4,67 @@ APIs
 ====
 
 
-**GET** **/handler**
+**GET** **/behavior**
 
-   Returns the current handler in use.
-
-   Example::
-
-      $ curl http://localhost:8080/handler
-      normal
-
-
-**POST** **/handler**
-
-   Set the handler. The handler must be provided in a JSON mapping
-   in the body of the request, with a **name** key for the handler
-   name, and any option to pass to the handler class.
+   Returns the current behavior in use.
 
    Example::
 
-     $ curl -d"'{"sleep": 2, "name": "delay"}'" http://localhost:8080/handler
-     OK
+       $ curl -XGET http://localhost:8080/behavior
+       {
+         "behavior": "dummy"
+       }
 
 
-**GET** **/handlers**
+**POST** **/behavior**
 
-   Returns a list of handlers that are possible to use
+   Set the behavior. The behavior must be provided in a JSON mapping
+   in the body of the request, with a **name** key for the behavior
+   name, and any option to pass to the behavior class.
 
    Example::
 
-      $ curl http://localhost:8080/handlers
-      {"handlers": ["delay", "error", "hang", "blackout", "dummy"]}
+      $ curl -d '{"sleep": 2, "name": "delay"}' http://localhost:8080/behavior \
+            -H "Content-Type: application/json"
+       {
+         "status": "ok"
+       }
+
+
+**GET** **/behaviors**
+
+   Returns a list of behaviors that are possible to use
+
+   Example::
+
+      $ curl -XGET http://localhost:8080/behaviors
+      {
+      "behaviors": [
+          "blackout",
+          "delay",
+          "dummy",
+          "error",
+          "hang"
+      ]
+      }
 
 
 Command line
 ============
 
-You can use these APIs directly from the command-line using the `vaurienctl`
-cli tool.
+You can use these APIs directly from the command-line using the **vaurienctl**
+CLI tool.
 
-With it, you can either list the available handlers, get the current one or set
-the handler to another one. Here is a quick demo::
+**vaurienctl** can be used to list the available behaviors, get the current one,
+or set it.
 
-    $ vaurienctl list-handlers
+Here is a quick demo::
+
+    $ vaurienctl list-behaviors
     delay, error, hang, blackout, dummy
-    $ vaurienctl set-handler blackout
-    Handler changed to "blackout"
-    $ vaurienctl get-handler
-    blackout
 
+    $ vaurienctl set-behavior blackout
+    Behavior changed to "blackout"
+
+    $ vaurienctl get-behavior
+    blackout
