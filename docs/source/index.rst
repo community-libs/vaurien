@@ -52,7 +52,7 @@ Design
 Vaurien is a TCP proxy that simply reads data sent to it and pass it to a
 backend, and vice-versa.
 
-It has built-in **protocols**: Tcp, Http, Redis & Memcache. The **Tcp** protocol
+It has built-in **protocols**: TCP, HTTP, Redis & Memcache. The **TCP** protocol
 is the default one and just sucks data on both sides and pass it along.
 
 Having higher-level protocols is mandatory in some cases, when Vaurien needs to
@@ -67,7 +67,7 @@ can be implemented in a behavior.
 Both **protocols** and **behaviors** are plugins, allowing you to extend Vaurien
 by adding new ones.
 
-Last, but not least, Vaurien provides a couple of APIs you can use to
+Last (but not least), Vaurien provides a couple of APIs you can use to
 change the behavior of the proxy live. That's handy when you are doing
 functional tests against your server: you can for instance start to add
 big delays and see how your web application reacts.
@@ -119,7 +119,7 @@ Controlling Vaurien live
 ========================
 
 
-Vaurien provides an HTTP server with a few APIs, which can be used to control
+Vaurien provides an HTTP server with an API, which can be used to control
 the proxy and change its behavior on the fly.
 
 To activate it, use the `--http` option::
@@ -179,7 +179,7 @@ Extending Vaurien
 Vaurien comes with a handful of useful :ref:`behaviors` and :ref:`protocols`,
 but you can create your own ones and plug them in a configuration file.
 
-In fact that's the best way to create realistic issues. Imagine that you
+In fact, that's the best way to create realistic issues: imagine you
 have a very specific type of error on your LDAP server everytime your
 infrastructure is under heavy load. You can reproduce this issue in your
 behavior and make sure your web application behaves as it should.
@@ -187,7 +187,7 @@ behavior and make sure your web application behaves as it should.
 Creating new behaviors and protocols is done by implementing classes with
 specific signatures.
 
-For example if you want to create a **super** behavior, you just have
+For example if you want to create a "*super*" behavior, you just have
 to write a class with two special methods: **on_before_handle** and
 **on_after_handle**.
 

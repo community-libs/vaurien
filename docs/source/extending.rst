@@ -33,14 +33,14 @@ signature::
 
         def __call__(self, client_sock, backend_sock, to_backend):
             # do something here
-            return True
+            return True  # or False, see after.
 
 
     Handler.register(MySuperHandler)
 
 
-Vaurien can use this handler and call it everytime data is being seen on one hand
-or the other.
+Vaurien can use this handler and call it when data comes from the backend (the
+server being proxied) or from a client (making calls to the server).
 
 You must call **Handler.register** against your class is order to add it
 to the list of the available plugins.

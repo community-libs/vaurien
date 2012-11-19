@@ -6,7 +6,7 @@ APIs
 
 **GET** **/behavior**
 
-   Returns the current behavior in use.
+   Returns the current behavior in use, as a json object.
 
    Example::
 
@@ -18,14 +18,19 @@ APIs
 
 **POST** **/behavior**
 
-   Set the behavior. The behavior must be provided in a JSON mapping
+   Set the behavior. The behavior must be provided in a JSON object,
    in the body of the request, with a **name** key for the behavior
    name, and any option to pass to the behavior class.
+
+   .. note::
+
+        Don't forget to set the "application/json" Content-Type header
+        when doing your calls.
 
    Example::
 
       $ curl -d '{"sleep": 2, "name": "delay"}' http://localhost:8080/behavior \
-            -H "Content-Type: application/json"
+             -H "Content-Type: application/json"
        {
          "status": "ok"
        }
