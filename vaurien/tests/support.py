@@ -1,7 +1,7 @@
 import sys
 import subprocess
 
-from vaurien.webserver import create_app
+from vaurien.webserver import get_config
 
 from gevent.wsgi import WSGIServer
 
@@ -30,10 +30,11 @@ class FakeProxy(object):
 
 def start_vaurien_httpserver(port):
     """Start a vaurien httpserver, controlling a fake proxy"""
-    app = create_app()
-    setattr(app, 'proxy', FakeProxy())
+    config = get_config()
+    config.registry['proxy'] = FakeProxy()
 
-    server = WSGIServer(('localhost', int(port)), app, log=None)
+    server = WSGIServer(('localhost', int(port)), config.make_wsgi_app(),
+                        log=None)
     server.serve_forever()
 
 

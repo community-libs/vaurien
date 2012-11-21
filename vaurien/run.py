@@ -176,13 +176,15 @@ def main():
         # if we are using the http server, then we want to use the OnTheFly
         # proxy
         proxy = OnTheFlyProxy(**proxy_args)
-        from vaurien.webserver import app
+        from vaurien.webserver import get_config
         from gevent.wsgi import WSGIServer
 
-        setattr(app, 'proxy', proxy)
+        config = get_config()
+        config.registry['proxy'] = proxy
+        app = config.make_wsgi_app()
 
         # configure the web app logger
-        configure_logger(app.logger, args.loglevel, args.logoutput)
+        # configure_logger(app.logger, args.loglevel, args.logoutput)
 
         # app.run(host=args.http_host, port=args.http_port)
         http_server = WSGIServer((args.http_host, args.http_port), app,

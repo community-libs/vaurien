@@ -16,7 +16,7 @@ class Client(object):
 
     def set_behavior(self, behavior, **options):
         options['name'] = behavior
-        res = requests.post(self.behavior_url, data=json.dumps(options))
+        res = requests.put(self.behavior_url, data=json.dumps(options))
         if res.status_code == 400:
             errors = res.json.get('errors', [])
             status = res.json.get('status', 'error')

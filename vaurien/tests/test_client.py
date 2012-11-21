@@ -13,7 +13,7 @@ class TestClient(TestCase):
         self.process = Popen(cmd.split(' '))
 
         # wait for the server to start
-        time.sleep(0.2)
+        time.sleep(0.5)
         self.client = Client('localhost', port)
 
     def tearDown(self):
