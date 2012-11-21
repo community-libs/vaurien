@@ -16,7 +16,7 @@ APIs
        }
 
 
-**POST** **/behavior**
+**PUT** **/behavior**
 
    Set the behavior. The behavior must be provided in a JSON object,
    in the body of the request, with a **name** key for the behavior
@@ -29,7 +29,7 @@ APIs
 
    Example::
 
-      $ curl -d '{"sleep": 2, "name": "delay"}' http://localhost:8080/behavior \
+      $ curl -XPUT -d '{"sleep": 2, "name": "delay"}' http://localhost:8080/behavior \
              -H "Content-Type: application/json"
        {
          "status": "ok"
