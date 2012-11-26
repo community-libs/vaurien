@@ -3,6 +3,9 @@ Vaurien, the Chaos TCP Proxy
 
 Ever heard of the `Chaos Monkey <http://www.codinghorror.com/blog/2011/04/working-with-the-chaos-monkey.html>`_?
 
+.. image:: monkey.png
+    :align: right
+
 It's a project at Netflix to enhance the infrastructure tolerance. The Chaos Monkey
 will randomly shut down some servers or block some network connections, and the system
 is supposed to survive to these events. It's a way to verify the high availability
