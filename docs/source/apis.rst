@@ -3,6 +3,11 @@
 APIs
 ====
 
+You can control vaurien from its APIs. There is a REST API and a command-line
+API
+
+The REST API
+------------
 
 **GET** **/behavior**
 

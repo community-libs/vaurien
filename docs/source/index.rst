@@ -1,7 +1,5 @@
-Welcome to Vaurien's documentation!
-===================================
-
-*Vaurien, the Chaos TCP Proxy*
+Vaurien, the Chaos TCP Proxy
+############################
 
 Ever heard of the `Chaos Monkey <http://www.codinghorror.com/blog/2011/04/working-with-the-chaos-monkey.html>`_?
 
@@ -226,7 +224,7 @@ Don't hesitate to send us pull requests or open issues!
 More documentation
 ==================
 
-Contents:
+And there is more! Have a look at the other sections of the documentation:
 
 .. toctree::
    :maxdepth: 2
