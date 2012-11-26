@@ -11,7 +11,9 @@ _BEHAVIOR = """\
 Behaviors
 =========
 
-Vaurien provides a collections of behaviors.
+Vaurien provides a collections of behaviors, all of them are listed on this
+page.  You can also write your own behaviors if you need. Have a look at
+:ref:`extending` to learn more.
 
 """
 
@@ -23,7 +25,9 @@ _PROTO = """\
 Protocols
 =========
 
-Vaurien provides a collections of protocols.
+Vaurien provides a collections of protocols, which are all listed on this page.
+You can also write your own protocols if you need. Have a look at
+:ref:`extending` to learn more.
 
 """
 
@@ -39,10 +43,11 @@ def generate_protocols(app):
 
 
 def generate_plugins_doc(app, name, items, tmpl):
-    path = os.path.join(app.srcdir, name)
     ext = app.config['source_suffix']
     filename = os.path.join(app.srcdir, "%s%s" % (name, ext))
     items.sort()
+    tmpl = ('.. do not edit: this file is generated automatically'.upper()
+            + tmpl + '\n\n')
 
     with open(filename, "w") as doc:
         doc.write(tmpl)
