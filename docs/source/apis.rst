@@ -58,23 +58,5 @@ The REST API
       ]
       }
 
-
-Command line
-------------
-
-You can use these APIs directly from the command-line using the **vaurienctl**
-CLI tool.
-
-**vaurienctl** can be used to list the available behaviors, get the current one,
-or set it.
-
-Here is a quick demo::
-
-    $ vaurienctl list-behaviors
-    delay, error, hang, blackout, dummy
-
-    $ vaurienctl set-behavior blackout
-    Behavior changed to "blackout"
-
-    $ vaurienctl get-behavior
-    blackout
+If you want to control vaurien from the command-line, you can do so by using
+`vaurienclient <http://github.com/mozilla-services/vaurienclient>`_.
