@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from vaurien import __version__
 
 
-install_requires = ['gevent', 'statsd-client', 'vaurienclient']
+install_requires = ['cornice', 'gevent', 'statsd-client', 'vaurienclient']
 
 try:
     import argparse     # NOQA
@@ -30,7 +30,7 @@ setup(name='vaurien',
       zip_safe=False,
       classifiers=classifiers,
       install_requires=install_requires,
-      test_requires=install_requires + ['nose', 'requests'],
+      tests_require=install_requires + ['nose', 'requests', 'webtest'],
       test_suite='nose.collector',
       entry_points="""
       [console_scripts]
