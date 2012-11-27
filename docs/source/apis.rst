@@ -60,3 +60,4 @@ The REST API
 
 If you want to control vaurien from the command-line, you can do so by using
 `vaurienclient <http://github.com/mozilla-services/vaurienclient>`_.
+`vaurienctl --help` will provide you some help.
