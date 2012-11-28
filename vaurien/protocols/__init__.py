@@ -39,6 +39,10 @@ class Protocol(object):
 
     @classmethod
     def get_protocols(cls):
+        """Return a mapping of all protocols.
+
+        The keys are the protocol names and the values the classes.
+        """
         return dict([(klass.name, cls._get_instance(klass))
                      for klass in cls._abc_registry])
 
@@ -50,12 +54,7 @@ class Protocol(object):
         raise KeyError(name)
 
 
-def get_protocols():
-    """Return a mapping of all protocols.
-
-    The keys are the protocol names and the values the classes.
-    """
-    return Protocol.get_protocols()
+get_protocols = Protocol.get_protocols
 
 
 def get_protocol(name):

@@ -45,6 +45,10 @@ class Behavior(object):
 
     @classmethod
     def get_behaviors(cls):
+        """Return a mapping of all behaviors.
+
+        The keys are the behavior names and the values the classes.
+        """
         return dict([(klass.name, cls._get_instance(klass))
                      for klass in cls._abc_registry])
 
@@ -56,12 +60,7 @@ class Behavior(object):
         raise KeyError(name)
 
 
-def get_behaviors():
-    """Return a mapping of all behaviors.
-
-    The keys are the behavior names and the values the classes.
-    """
-    return Behavior.get_behaviors()
+get_behaviors = Behavior.get_behaviors
 
 
 def get_behavior(name):
