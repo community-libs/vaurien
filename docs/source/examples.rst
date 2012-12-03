@@ -29,3 +29,7 @@ Adding a 1 second delay on **every** call to a MySQL server::
               --handler-delay-sleep 1
 
 
+A quick'n'dirty SSH tunnel from your box to another box::
+
+    $ vaurien --stay-connected --proxy 0.0.0.0:8887 --backend 192.168.1.276:22 \
+        --protocol-tcp-keep-alive
