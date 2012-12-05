@@ -177,7 +177,7 @@ def main():
         # proxy
         proxy = OnTheFlyProxy(**proxy_args)
         from vaurien.webserver import get_config
-        from gevent.wsgi import WSGIServer
+        from gevent.pywsgi import WSGIServer
 
         config = get_config()
         config.registry['proxy'] = proxy
