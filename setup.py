@@ -35,4 +35,5 @@ setup(name='vaurien',
       entry_points="""
       [console_scripts]
       vaurien = vaurien.run:main
+      meta-vaurien = vaurien.meta:main
       """)
