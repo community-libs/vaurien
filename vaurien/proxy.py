@@ -27,7 +27,8 @@ class DefaultProxy(StreamServer):
         parsed_proxy = parse_address(proxy)
         dest = parse_address(backend)
         StreamServer.__init__(self, parsed_proxy, **kwargs)
-        self.pool_max_size = cfg.get('pool_max_size', 100)
+        self.max_accept = 2000  # XXX option ?
+        self.pool_max_size = cfg.get('pool_max_size', 1000)
         self.pool_timeout = cfg.get('pool_timeout', 30)
         self.async_mode = cfg.get('async_mode', False)
         self._pool = FactoryPool(self._create_connection, self.pool_max_size,

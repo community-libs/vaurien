@@ -1,9 +1,11 @@
+from errno import EAGAIN, EWOULDBLOCK
 import sys
 import time
 import subprocess
 
 from gevent.socket import gethostbyname
 from gevent.socket import error
+from gevent import sleep
 
 
 class ImportStringError(ImportError):
@@ -179,12 +181,13 @@ def chunked(total, chunk):
                 data -= chunk
 
 def get_data(sock, buffer=1024):
-    try:
-        data = sock.recv(buffer)
-    except error:   # for the async mode
-        # XXX on 35 we should retry
-        data = ''
-    return data
+    while True:
+        try:
+            return sock.recv(buffer)
+        except error, e:
+            if e.args[0] not in (EWOULDBLOCK, EAGAIN):
+                raise
+            sleep(0)
 
 
 def extract_settings(args, prefix, name):

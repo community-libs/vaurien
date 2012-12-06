@@ -1,5 +1,7 @@
 import re
 
+from gevent import socket, sleep
+
 from vaurien.protocols.base import BaseProtocol
 from vaurien.util import chunked
 
@@ -17,6 +19,7 @@ class Http(BaseProtocol):
     """
     name = 'http'
 
+
     def _handle(self, source, dest, to_backend):
         buffer_size = self.option('buffer')
 
@@ -31,12 +34,13 @@ class Http(BaseProtocol):
         dest.sendall(data)
 
         # Receiving the response
-        buffer = dest.recv(buffer_size)
+        buffer = self._get_data(dest, buffer_size)
+
         source.sendall(buffer)
 
         # Reading the HTTP Headers
         while EOH not in buffer:
-            data = dest.recv(buffer_size)
+            data = self._get_data(dest, buffer_size)
             buffer += data
             source.sendall(data)
 
@@ -51,14 +55,14 @@ class Http(BaseProtocol):
             left_to_read = resp_len - len(buffer)
             if left_to_read > 0:
                 for chunk in chunked(left_to_read, buffer_size):
-                    data = dest.recv(chunk)
+                    data = self._get_data(dest, chunk)
                     buffer += data
                     source.sendall(data)
         else:
             # embarrassing...
             # just sucking until recv() returns ''
             while True:
-                data = dest.recv(buffer_size)
+                data = self._get_data(dest, buffer_size)
                 if data == '':
                     break
                 source.sendall(data)

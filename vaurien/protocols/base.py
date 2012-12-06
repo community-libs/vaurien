@@ -47,8 +47,10 @@ class BaseProtocol(object):
         value = self.settings.get(name, default)
         return self._convert(value, type_)
 
-    def _get_data(self, sock):
-        return get_data(sock, self.option('buffer'))
+    def _get_data(self, sock, buffer=None):
+        if buffer is None:
+            buffer = self.option('buffer')
+        return get_data(sock, buffer)
 
     def __call__(self, source, dest, to_backend, behavior):
         if not behavior.on_before_handle(self, source, dest, to_backend):
