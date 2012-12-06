@@ -1,4 +1,4 @@
-import Queue
+from gevent.queue import PriorityQueue, Empty
 import time
 import contextlib
 import sys
@@ -11,11 +11,11 @@ EMPTY_SLOT = sys.maxint, None
 
 class FactoryPool(object):
 
-    def __init__(self, factory, maxsize=100, timeout=60):
+    def __init__(self, factory, maxsize=200, timeout=60):
         self.factory = factory
         self.maxsize = maxsize
         self.timeout = timeout
-        self.clients = Queue.PriorityQueue(maxsize)
+        self.clients = PriorityQueue(maxsize)
         # If there is a maxsize, prime the queue with empty slots.
         if maxsize is not None:
             for _ in xrange(maxsize):
@@ -38,7 +38,7 @@ class FactoryPool(object):
         while True:
             try:
                 ts, client = self.clients.get(blocking)
-            except Queue.Empty:
+            except Empty:
                 # No maxsize and no free connections, create a new one.
                 # XXX TODO: we should be using a monotonic clock here.
                 # see http://www.python.org/dev/peps/pep-0418/
