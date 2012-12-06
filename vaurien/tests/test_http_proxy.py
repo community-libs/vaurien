@@ -15,7 +15,7 @@ _SERVER = [sys.executable, '-m', 'SimpleHTTPServer', '8888']
 # we should provide a way to set an option
 # for all behaviors at once
 #
-_OPTIONS = ['--behavior-delay-sleep', '1' ]
+_OPTIONS = ['--behavior-delay-sleep', '1']
 
 
 class TestHttpProxy(unittest.TestCase):

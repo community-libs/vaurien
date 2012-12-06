@@ -1,7 +1,6 @@
 import re
 
 from vaurien.protocols.base import BaseProtocol
-from vaurien.util import chunked
 
 
 RE_LEN = re.compile('Content-Length: (\d+)', re.M | re.I)

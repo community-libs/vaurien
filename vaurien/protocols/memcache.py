@@ -71,4 +71,3 @@ class Memcache(BaseProtocol):
 
         # we're done
         return True    # keeping connected
-

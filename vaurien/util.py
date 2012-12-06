@@ -180,6 +180,7 @@ def chunked(total, chunk):
             else:
                 data -= chunk
 
+
 def get_data(sock, buffer=1024):
     while True:
         try:

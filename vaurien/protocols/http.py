@@ -1,7 +1,5 @@
 import re
 
-from gevent import socket, sleep
-
 from vaurien.protocols.base import BaseProtocol
 from vaurien.util import chunked
 
@@ -18,7 +16,6 @@ class Http(BaseProtocol):
     """HTTP protocol.
     """
     name = 'http'
-
 
     def _handle(self, source, dest, to_backend):
         buffer_size = self.option('buffer')

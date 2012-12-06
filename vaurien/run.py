@@ -80,7 +80,6 @@ def build_args(parser, items, prefix):
                                 help=description, **kws)
 
 
-
 def main():
     parser = argparse.ArgumentParser(description='Runs a Chaos TCP proxy.')
 
