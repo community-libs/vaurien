@@ -19,7 +19,6 @@ class Memcache(BaseProtocol):
 
     def _handle(self, source, dest, to_backend):
         # https://github.com/memcached/memcached/blob/master/doc/protocol.txt
-
         # Sending the query
         buffer = self._get_data(source)
         if not buffer:
@@ -41,13 +40,16 @@ class Memcache(BaseProtocol):
         cmd = cmd.groups()[0]
         buffer_size = self.option('buffer')
 
-        if cmd in ('set', 'add', 'replace', 'append'):
-            cmd_size = len(cmd) + len('\r\n')
-            data_size = int(cmd.split()[-1])
+        cmd_parts = cmd.split()
+        mcmd = cmd_parts[0]
+
+        if mcmd in ('set', 'add', 'replace', 'append'):
+            cmd_size = len(cmd) + len(CRLF)
+            data_size = int(cmd_parts[-1])
             total_size = cmd_size + data_size
 
             # grabbing more data if needed
-            left_to_read = total_size - len(buffer)
+            left_to_read = total_size - len(buffer) + len(CRLF)
             if left_to_read > 0:
                 for chunk in chunked(left_to_read, buffer_size):
                     data = source.recv(chunk)
@@ -60,9 +62,9 @@ class Memcache(BaseProtocol):
 
         if buffer.startswith('VALUE'):
             # we're getting back a value.
-            EOW = 'END\r\n'
+            EOW = 'END' + CRLF
         else:
-            EOW = '\r\n'
+            EOW = CRLF
 
         while not buffer.endswith(EOW):
             data = dest.recv(buffer_size)

@@ -173,12 +173,13 @@ def chunked(total, chunk):
         yield total
     else:
         data = total
-        while data > 0:
-            yield chunk
-            if data < chunk:
-                chunk = data
-            else:
+        while True:
+            if data > chunk:
+                yield chunk
                 data -= chunk
+            else:
+                yield data
+                break
 
 
 def get_data(sock, buffer=1024):
