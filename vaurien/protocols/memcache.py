@@ -57,7 +57,7 @@ class Memcache(BaseProtocol):
                     dest.sendall(data)
 
         # Receiving the response now
-        buffer = dest.recv(buffer_size)
+        buffer = self._get_data(dest, buffer_size)
         source.sendall(buffer)
 
         if buffer.startswith('VALUE'):
@@ -67,7 +67,7 @@ class Memcache(BaseProtocol):
             EOW = CRLF
 
         while not buffer.endswith(EOW):
-            data = dest.recv(buffer_size)
+            data = self._get_data(dest, buffer_size)
             buffer += data
             source.sendall(data)
 
