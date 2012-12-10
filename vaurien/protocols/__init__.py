@@ -77,3 +77,6 @@ Protocol.register(Http)
 
 from vaurien.protocols.smtp import SMTP
 Protocol.register(SMTP)
+
+from vaurien.protocols.mysql import MySql
+Protocol.register(MySql)
