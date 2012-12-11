@@ -26,11 +26,12 @@ class DefaultProxy(StreamServer):
         logger.info('Starting the Chaos TCP Server')
         parsed_proxy = parse_address(proxy)
         dest = parse_address(backend)
-        StreamServer.__init__(self, parsed_proxy, **kwargs)
+        backlog = cfg.get('backlog', 8192)
+        StreamServer.__init__(self, parsed_proxy, backlog=backlog, **kwargs)
         self.max_accept = 2000  # XXX option ?
         self.pool_max_size = cfg.get('pool_max_size', 1000)
         self.pool_timeout = cfg.get('pool_timeout', 30)
-        self.async_mode = cfg.get('async_mode', False)
+        self.async_mode = not cfg.get('sync', False)
         self._pool = FactoryPool(self._create_connection, self.pool_max_size,
                                  self.pool_timeout)
         self.dest = dest
@@ -99,6 +100,9 @@ class DefaultProxy(StreamServer):
                         backend_sock._closed = True
                         break
 
+                    if client_sock.closed:
+                        raise ValueError("Client is gone")
+
                     greens = [gevent.spawn(self._weirdify,
                                            client_sock, backend_sock,
                                            sock is not backend_sock,
@@ -124,7 +128,7 @@ class DefaultProxy(StreamServer):
         if self._statsd:
             self._statsd.incr(counter)
         elif self._logger:
-            self._logger.info(counter)
+            self._logger.debug(counter)
 
     def _weirdify(self, client_sock, backend_sock, to_backend,
                   statsd_prefix, behavior, behavior_name):
@@ -133,6 +137,9 @@ class DefaultProxy(StreamServer):
         Depending the configuration, we will chose to either drop packets,
         proxy them, wait a long time, etc, as defined in the configuration.
         """
+        if client_sock.closed:
+            raise ValueError("Client is gone")
+
         if to_backend:
             self.statsd_incr(statsd_prefix + 'to_backend')
             dest = backend_sock

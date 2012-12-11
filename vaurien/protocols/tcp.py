@@ -39,7 +39,5 @@ class TCP(BaseProtocol):
 
                 # we're done - False means we'll disconnect the client
                 return False
-        else:
-            self._abort_handling(to_backend, dest)
 
         return data != ''
