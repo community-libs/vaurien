@@ -8,7 +8,7 @@ class BaseProtocol(object):
     name = ''
     options = {'reuse_socket': ("If True, the socket is reused.",
                                 bool, False),
-               'buffer': ("Buffer size", int, 2048),
+               'buffer': ("Buffer size", int, 8124),
                'keep_alive': ("Keep the connection alive", bool, False)
                }
 
