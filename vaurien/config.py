@@ -262,12 +262,12 @@ DEFAULT_SETTINGS = SettingsDict({
     'vaurien.proxy': 'localhost:8000',
     'vaurien.backend': 'localhost:80',
     'vaurien.behavior': '100:dummy',
-    'vaurien.bufsize': 1024,
+    'vaurien.bufsize': 8192,
     'vaurien.timeout': 30,
     'vaurien.stay_connected': False,
     'vaurien.pool_max_size': 100,
     'vaurien.pool_timeout': 30,
-    'vaurien.async_mode': False,
+    'vaurien.async_mode': True,
 
     # stats config
     'statsd.enabled': False,
