@@ -81,6 +81,10 @@ def build_args(parser, items, prefix):
 
 
 def main():
+    # get the values from the default config
+    defaults = DEFAULT_SETTINGS.items()
+    defaults.sort()
+
     parser = argparse.ArgumentParser(description='Runs a Chaos TCP proxy.')
 
     # other arguments
@@ -93,13 +97,8 @@ def main():
                         help='Host of the http server, if any')
     parser.add_argument('--http-port', default=8080, type=int,
                         help='Port of the http server, if any')
-
     parser.add_argument('--protocol', default='tcp', choices=get_protocols(),
                         help='Protocol used')
-
-    # get the values from the default config
-    defaults = DEFAULT_SETTINGS.items()
-    defaults.sort()
 
     for key, default in defaults:
         if key.startswith('vaurien'):
@@ -136,17 +135,10 @@ def main():
     # configure the logger
     configure_logger(logger, args.loglevel, args.logoutput)
 
+    # load the defaults
     settings = DEFAULT_SETTINGS.copy()
 
-    if args.config is not None:
-        # read the config if provided
-        try:
-            load_into_settings(args.config, settings)
-        except ValueError, e:
-            print(e)
-            sys.exit(1)
-
-    # overwrite with the commandline arguments
+    # overwrite with the command line arguments
     for key in settings.keys():
         prefix = ''
         if key.startswith('vaurien'):
@@ -160,6 +152,14 @@ def main():
 
         if value is not None:
             settings[prefix + key] = value
+
+    # overwrite with the config file if any
+    if args.config is not None:
+        try:
+            load_into_settings(args.config, settings)
+        except ValueError, e:
+            print(e)
+            sys.exit(1)
 
     # pass the args in the settings
     settings['args'] = args
