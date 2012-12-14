@@ -3,7 +3,7 @@ import requests
 import sys
 import time
 
-from vaurien.client import Client
+from vaurienclient import Client
 from vaurien.util import start_proxy, stop_proxy
 from vaurien.tests.support import start_simplehttp_server
 

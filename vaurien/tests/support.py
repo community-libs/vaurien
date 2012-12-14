@@ -3,7 +3,7 @@ import subprocess
 
 from vaurien.webserver import get_config
 
-from gevent.wsgi import WSGIServer
+from gevent.pywsgi import WSGIServer
 
 
 class FakeProxy(object):
