@@ -100,7 +100,8 @@ class DefaultProxy(StreamServer):
                         backend_sock._closed = True
                         break
 
-                    if client_sock.closed:
+                    # gevent 1.x introduced 'closed'
+                    if hasattr(client_sock, 'closed') and client_sock.closed:
                         raise ValueError("Client is gone")
 
                     greens = [gevent.spawn(self._weirdify,
@@ -137,7 +138,7 @@ class DefaultProxy(StreamServer):
         Depending the configuration, we will chose to either drop packets,
         proxy them, wait a long time, etc, as defined in the configuration.
         """
-        if client_sock.closed:
+        if hasattr(client_sock, 'closed') and client_sock.closed:
             raise ValueError("Client is gone")
 
         if to_backend:
