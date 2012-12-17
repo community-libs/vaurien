@@ -22,7 +22,7 @@ class Redis(BaseProtocol):
         while pos == -1:
             data = self._get_data(source)
             if data == '':
-                return -1
+                return -1, buffer
             dest.sendall(data)
             buffer += data
             pos = buffer.find(char)
@@ -33,6 +33,9 @@ class Redis(BaseProtocol):
         """
         # grabbing data
         bytepos, buffer = self._find(source, '', CRLF, dest)
+        if bytepos == -1:
+            return False
+
         num_args = int(buffer[1:bytepos])
 
         for arg in range(num_args):
