@@ -236,6 +236,5 @@ And there is more! Have a look at the other sections of the documentation:
    protocols
    apis
    extending
-   keepalive
    examples
 

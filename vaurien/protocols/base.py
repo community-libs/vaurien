@@ -4,7 +4,6 @@ from vaurien.util import get_data
 
 class BaseProtocol(object):
 
-    options = {}
     name = ''
     options = {'reuse_socket': ("If True, the socket is reused.",
                                 bool, False),
@@ -55,7 +54,6 @@ class BaseProtocol(object):
     def __call__(self, source, dest, to_backend, behavior):
         if not behavior.on_before_handle(self, source, dest, to_backend):
             return True
-
         try:
             return self._handle(source, dest, to_backend)
         finally:
