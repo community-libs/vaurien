@@ -1,4 +1,3 @@
-import fcntl
 import argparse
 import sys
 import logging
@@ -27,6 +26,11 @@ class DevNull(object):
 
 
 def close_on_exec(fd):
+    try:
+        import fcntl
+    except ImportError:
+        return
+
     flags = fcntl.fcntl(fd, fcntl.F_GETFD)
     flags |= fcntl.FD_CLOEXEC
     fcntl.fcntl(fd, fcntl.F_SETFD, flags)
