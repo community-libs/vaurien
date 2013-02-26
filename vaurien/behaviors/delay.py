@@ -1,5 +1,4 @@
 import gevent
-
 from vaurien.behaviors.dummy import Dummy
 
 
@@ -14,12 +13,6 @@ class Delay(Dummy):
                ("If True adds before the backend is called. Otherwise"
                 " after", bool, True)}
     options.update(Dummy.options)
-
-    def __init__(self):
-        self.settings = {}
-
-    def update_settings(self, settings):
-        self.settings.update(settings)
 
     def on_before_handle(self, protocol, source, dest, to_backend):
         if self.option('before'):
