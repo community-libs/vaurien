@@ -177,7 +177,7 @@ class RandomProxy(DefaultProxy):
         for behavior in behavior.split(','):
             choice = behavior.split(':')
             if len(choice) != 2:
-                raise ValueError('You need to use name:percentage')
+                raise ValueError('You need to use percentage:name')
 
             percent, behavior_name = choice
             percent = int(percent)
