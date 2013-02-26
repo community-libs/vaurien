@@ -2,7 +2,8 @@ from setuptools import setup, find_packages
 from vaurien import __version__
 
 
-install_requires = ['cornice', 'gevent', 'statsd-client', 'vaurienclient']
+install_requires = ['cornice', 'gevent', 'statsd-client', 'vaurienclient',
+                    'greenlet']
 
 try:
     import argparse     # NOQA
