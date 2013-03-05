@@ -25,6 +25,7 @@ class DefaultProxy(StreamServer):
 
         logger.info('Starting the Chaos TCP Server')
         parsed_proxy = parse_address(proxy)
+        self.backend = backend
         dest = parse_address(backend)
         backlog = cfg.get('backlog', 8192)
         StreamServer.__init__(self, parsed_proxy, backlog=backlog, **kwargs)
@@ -58,6 +59,7 @@ class DefaultProxy(StreamServer):
         args = settings['args']
         self.handler.update_settings(extract_settings(args, 'protocol',
                                                       self.protocol))
+        self.handler.proxy = self
 
         logger.info('Options:')
         logger.info('* proxies from %s to %s' % (proxy, backend))

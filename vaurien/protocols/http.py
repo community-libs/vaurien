@@ -4,11 +4,9 @@ from vaurien.protocols.base import BaseProtocol
 from vaurien.util import chunked
 
 
-RE_LEN = re.compile('Content-Length: (\d+)', re.M | re.I)
 RE_KEEPALIVE = re.compile('Connection: Keep-Alive')
-RE_MEMCACHE_COMMAND = re.compile('(.*)\r\n')
+HOST_REPLACE = re.compile(r'\r\nHost: .+\r\n')
 
-EOH = '\r\n\r\n'
 CRLF = '\r\n'
 
 
@@ -22,6 +20,7 @@ class Http(BaseProtocol):
 
         # Getting the HTTP query
         data = self._get_data(source)
+        data = HOST_REPLACE.sub('\r\nHost: %s\r\n' % self.proxy.backend, data)
 
         if not data:
             self._abort_handling(to_backend, dest)
@@ -31,38 +30,17 @@ class Http(BaseProtocol):
         dest.sendall(data)
 
         # Receiving the response
-        buffer = self._get_data(dest, buffer_size)
+        data = self._get_data(dest, buffer_size)
+        source.sendall(data)
 
-        source.sendall(buffer)
-
-        # Reading the HTTP Headers
-        while EOH not in buffer:
-            data = self._get_data(dest, buffer_size)
-            buffer += data
-            source.sendall(data)
+        buffer = data
+        while data:
+          data = self._get_data(dest, buffer_size)
+          buffer += data
+          source.sendall(data)
 
         # keep alive header ?
         keep_alive = RE_KEEPALIVE.search(buffer) is not None
-
-        # content-length header - to see if we need to suck more
-        # data.
-        match = RE_LEN.search(buffer)
-        if match:
-            resp_len = int(match.group(1))
-            left_to_read = resp_len - len(buffer)
-            if left_to_read > 0:
-                for chunk in chunked(left_to_read, buffer_size):
-                    data = self._get_data(dest, chunk)
-                    buffer += data
-                    source.sendall(data)
-        else:
-            # embarrassing...
-            # just sucking until recv() returns ''
-            while True:
-                data = self._get_data(dest, buffer_size)
-                if data == '':
-                    break
-                source.sendall(data)
 
         # do we close the client ?
         if not keep_alive and not self.option('keep_alive'):
