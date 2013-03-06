@@ -1,12 +1,15 @@
 import re
 
+try:
+    from http_parser.parser import HttpParser
+except ImportError:
+    from http_parser.pyparser import HttpParser
+
 from vaurien.protocols.base import BaseProtocol
 from vaurien.util import chunked
 
 
-RE_KEEPALIVE = re.compile('Connection: Keep-Alive')
 HOST_REPLACE = re.compile(r'\r\nHost: .+\r\n')
-
 CRLF = '\r\n'
 
 
@@ -29,18 +32,13 @@ class Http(BaseProtocol):
         # sending it to the backend
         dest.sendall(data)
 
-        # Receiving the response
-        data = self._get_data(dest, buffer_size)
-        source.sendall(data)
-
-        buffer = data
-        while data:
+        parser = HttpParser()
+        while not parser.is_message_complete():
           data = self._get_data(dest, buffer_size)
-          buffer += data
+          parser.execute(data, len(data))
           source.sendall(data)
 
-        # keep alive header ?
-        keep_alive = RE_KEEPALIVE.search(buffer) is not None
+        keep_alive = parser.should_keep_alive()
 
         # do we close the client ?
         if not keep_alive and not self.option('keep_alive'):
