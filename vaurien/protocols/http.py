@@ -1,14 +1,15 @@
 import re
 
+try:
+    from http_parser.parser import HttpParser
+except ImportError:
+    from http_parser.pyparser import HttpParser
+
 from vaurien.protocols.base import BaseProtocol
 from vaurien.util import chunked
 
 
-RE_LEN = re.compile('Content-Length: (\d+)', re.M | re.I)
-RE_KEEPALIVE = re.compile('Connection: Keep-Alive')
-RE_MEMCACHE_COMMAND = re.compile('(.*)\r\n')
-
-EOH = '\r\n\r\n'
+HOST_REPLACE = re.compile(r'\r\nHost: .+\r\n')
 CRLF = '\r\n'
 
 
@@ -20,49 +21,31 @@ class Http(BaseProtocol):
     def _handle(self, source, dest, to_backend):
         buffer_size = self.option('buffer')
 
-        # Getting the HTTP query
-        data = self._get_data(source)
+        # Getting the HTTP query and sending it to the backend.
+        parser = HttpParser()
+        while not parser.is_message_complete():
+            data = self._get_data(source, buffer_size)
+            if not data:
+                self._abort_handling(to_backend, dest)
+                return False
+            nparsed = parser.execute(data, len(data))
+            assert nparsed == len(data)
+            data = HOST_REPLACE.sub('\r\nHost: %s\r\n'
+                                    % self.proxy.backend, data)
+            dest.sendall(data)
 
-        if not data:
-            self._abort_handling(to_backend, dest)
-            return False
-
-        # sending it to the backend
-        dest.sendall(data)
-
-        # Receiving the response
-        buffer = self._get_data(dest, buffer_size)
-
-        source.sendall(buffer)
-
-        # Reading the HTTP Headers
-        while EOH not in buffer:
+        # Getting the HTTP response and sending it back to the source.
+        parser = HttpParser()
+        while not parser.is_message_complete():
             data = self._get_data(dest, buffer_size)
-            buffer += data
+            if not data:
+                self._abort_handling(to_backend, dest)
+                return False
+            nparsed = parser.execute(data, len(data))
+            assert nparsed == len(data)
             source.sendall(data)
 
-        # keep alive header ?
-        keep_alive = RE_KEEPALIVE.search(buffer) is not None
-
-        # content-length header - to see if we need to suck more
-        # data.
-        match = RE_LEN.search(buffer)
-        if match:
-            resp_len = int(match.group(1))
-            left_to_read = resp_len - len(buffer)
-            if left_to_read > 0:
-                for chunk in chunked(left_to_read, buffer_size):
-                    data = self._get_data(dest, chunk)
-                    buffer += data
-                    source.sendall(data)
-        else:
-            # embarrassing...
-            # just sucking until recv() returns ''
-            while True:
-                data = self._get_data(dest, buffer_size)
-                if data == '':
-                    break
-                source.sendall(data)
+        keep_alive = parser.should_keep_alive()
 
         # do we close the client ?
         if not keep_alive and not self.option('keep_alive'):
