@@ -190,7 +190,12 @@ def get_data(sock, buffer=1024):
         except error, e:
             if e.args[0] not in (EWOULDBLOCK, EAGAIN):
                 raise
-            wait_read(sock.fileno(), timeout=sock.gettimeout())
+            timeout = sock.gettimeout()
+            if timeout == 0:
+                # we are in async mode here so we just need to switch
+                sleep(0)
+            else:
+                wait_read(sock.fileno(), timeout=timeout)
 
 
 def extract_settings(args, prefix, name):
