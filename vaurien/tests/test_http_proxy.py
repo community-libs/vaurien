@@ -9,7 +9,6 @@ from vaurien.tests.support import start_simplehttp_server
 
 
 _PROXY = 'http://localhost:8000'
-_SERVER = [sys.executable, '-m', 'SimpleHTTPServer', '8888']
 
 
 # we should provide a way to set an option
@@ -44,7 +43,6 @@ class TestHttpProxy(unittest.TestCase):
         # let's do a few simple request first to make sure the proxy works
         self.assertEqual(self.client.get_behavior(), 'dummy')
         times = []
-
         for i in range(10):
             start = time.time()
             try:
