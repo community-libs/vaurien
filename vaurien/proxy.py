@@ -70,7 +70,7 @@ class DefaultProxy(StreamServer):
         logger.info('* async_mode: %d' % self.async_mode)
 
     def _create_connection(self):
-        conn = create_connection(self.dest)
+        conn = create_connection(self.dest, timeout=self.timeout)
         if self.async_mode:
             conn.setblocking(0)
         return conn
