@@ -1,3 +1,4 @@
 include README.rst
+include CONTRIBUTORS.rst
 recursive-include vaurien .txt
 recursive-include docs *.*
