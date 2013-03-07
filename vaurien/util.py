@@ -5,6 +5,7 @@ import subprocess
 
 from gevent.socket import gethostbyname
 from gevent.socket import error
+from gevent.socket import wait_read
 from gevent import sleep
 
 
@@ -189,7 +190,7 @@ def get_data(sock, buffer=1024):
         except error, e:
             if e.args[0] not in (EWOULDBLOCK, EAGAIN):
                 raise
-            sleep(0)
+            wait_read(sock.fileno(), timeout=sock.gettimeout())
 
 
 def extract_settings(args, prefix, name):

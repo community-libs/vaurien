@@ -3,7 +3,7 @@ from vaurien import __version__
 
 
 install_requires = ['cornice', 'gevent', 'statsd-client', 'vaurienclient',
-                    'greenlet']
+                    'greenlet', 'http-parser']
 
 try:
     import argparse     # NOQA
