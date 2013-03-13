@@ -1,4 +1,5 @@
 import re
+import copy
 
 try:
     from http_parser.parser import HttpParser
@@ -17,6 +18,9 @@ class Http(BaseProtocol):
     """HTTP protocol.
     """
     name = 'http'
+    options = copy.copy(BaseProtocol.options)
+    options['overwrite_host_header'] = ("If True, the HTTP Host header will be rewritten with backend address.",
+                                        bool, True)
 
     def _handle(self, source, dest, to_backend):
         buffer_size = self.option('buffer')
@@ -30,8 +34,9 @@ class Http(BaseProtocol):
                 return False
             nparsed = parser.execute(data, len(data))
             assert nparsed == len(data)
-            data = HOST_REPLACE.sub('\r\nHost: %s\r\n'
-                                    % self.proxy.backend, data)
+            if self.option('overwrite_host_header'):
+                data = HOST_REPLACE.sub('\r\nHost: %s\r\n'
+                                        % self.proxy.backend, data)
             dest.sendall(data)
 
         # Getting the HTTP response and sending it back to the source.
