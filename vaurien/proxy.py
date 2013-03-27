@@ -206,6 +206,12 @@ class RandomProxy(DefaultProxy):
             self.choices.extend(
                 [(self.behaviors[name], name) for i in range(percent)])
 
+    def _weirdify(self, client_sock, backend_sock, to_backend,
+                  statsd_prefix, behavior, behavior_name):
+      behavior, behavior_name = self.get_behavior()
+      super(RandomProxy, self)._weirdify(client_sock, backend_sock, to_backend,
+                                         statsd_prefix, behavior, behavior_name)
+
     def get_behavior(self):
         return random.choice(self.choices)
 

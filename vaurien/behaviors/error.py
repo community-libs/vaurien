@@ -31,6 +31,7 @@ _ERROR_CODES = _ERRORS.keys()
 _TMP = """\
 HTTP/1.1 %(code)s %(name)s
 Content-Type: text/html; charset=UTF-8
+Connection: close
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <title>%(code)s %(name)s</title>
