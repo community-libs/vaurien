@@ -1,6 +1,5 @@
 import unittest
 import requests
-import sys
 import time
 
 from vaurienclient import Client

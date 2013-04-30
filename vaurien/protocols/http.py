@@ -7,7 +7,6 @@ except ImportError:
     from http_parser.pyparser import HttpParser
 
 from vaurien.protocols.base import BaseProtocol
-from vaurien.util import chunked
 
 
 HOST_REPLACE = re.compile(r'\r\nHost: .+\r\n')
@@ -19,7 +18,8 @@ class Http(BaseProtocol):
     """
     name = 'http'
     options = copy.copy(BaseProtocol.options)
-    options['overwrite_host_header'] = ("If True, the HTTP Host header will be rewritten with backend address.",
+    options['overwrite_host_header'] = ("If True, the HTTP Host header will "
+                                        "be rewritten with backend address.",
                                         bool, True)
 
     def _close_both(self, source, dest):
@@ -64,10 +64,8 @@ class Http(BaseProtocol):
             source.close()
             source._closed = True
 
-        if (not keep_alive_dst or
-            not self.option('reuse_socket') or
-            not self.option('keep_alive')):
-
+        if (not keep_alive_dst or not self.option('reuse_socket') or not
+                self.option('keep_alive')):
             dest.close()
             dest._closed = True
 

@@ -46,7 +46,6 @@ class Redis(BaseProtocol):
             # reading the number of bytes
             num_bytes = int(buffer[1:bytepos])
             data_start = bytepos + len(CRLF)
-            data_end = data_start + num_bytes
 
             # reading the data (next CRLF)
             buffer = buffer[data_start:]

@@ -1,7 +1,6 @@
 import unittest
 import requests
 import time
-from StringIO import StringIO
 
 from vaurienclient import Client
 from vaurien.util import start_proxy, stop_proxy
