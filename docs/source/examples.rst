@@ -26,7 +26,7 @@ the transaction)::
 Adding a 1 second delay on **every** call to a MySQL server::
 
     $ vaurien --proxy 0.0.0.0:3307 --backend 0.0.0.0:3306 --stay-connected --behavior 100:delay \
-              --handler-delay-sleep 1
+              --behavior-delay-sleep 1
 
 
 A quick'n'dirty SSH tunnel from your box to another box::
