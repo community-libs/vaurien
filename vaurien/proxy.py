@@ -209,9 +209,9 @@ class RandomProxy(DefaultProxy):
     def _weirdify(self, client_sock, backend_sock, to_backend,
                   statsd_prefix, behavior, behavior_name):
         behavior, behavior_name = self.get_behavior()
-        super(RandomProxy, self)._weirdify(client_sock, backend_sock,
-                                           to_backend, statsd_prefix,
-                                           behavior, behavior_name)
+        return super(RandomProxy, self)._weirdify(client_sock, backend_sock,
+                                                  to_backend, statsd_prefix,
+                                                  behavior, behavior_name)
 
     def get_behavior(self):
         return random.choice(self.choices)
