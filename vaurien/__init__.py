@@ -1,6 +1,6 @@
 import logging
 
-__version__ = '1.8'
+__version__ = '1.9'
 logger = logging.getLogger('vaurien')
 
 # shortcuts
