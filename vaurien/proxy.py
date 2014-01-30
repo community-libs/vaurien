@@ -59,6 +59,11 @@ class DefaultProxy(StreamServer):
         args = settings['args']
         self.handler.update_settings(extract_settings(args, 'protocol',
                                                       self.protocol))
+
+        protocol_specific_settings = self.settings.getsection('protocol.%s' % self.protocol)
+        if protocol_specific_settings:
+            self.handler.update_settings(protocol_specific_settings)
+
         self.handler.proxy = self
 
         logger.info('Options:')
