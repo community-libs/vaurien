@@ -8,7 +8,7 @@ class Delay(Dummy):
     The delay can happen *after* or *before* the backend is called.
     """
     name = 'delay'
-    options = {'sleep': ("Delay in seconds", int, 1),
+    options = {'sleep': ("Delay in seconds (float)", float, 1),
                'before':
                ("If True adds before the backend is called. Otherwise"
                 " after", bool, True)}
