@@ -83,3 +83,6 @@ Behavior.register(Delay)
 
 from vaurien.behaviors.hang import Hang
 Behavior.register(Hang)
+
+from vaurien.behaviors.transient import Transient
+Behavior.register(Transient)
