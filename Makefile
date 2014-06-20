@@ -23,6 +23,7 @@ bin/sphinx-build: bin/python
 
 bin/nosetests: bin/python
 	bin/pip install nose
+	bin/pip install webtest
 
 bin/coverage: bin/python
 	bin/pip install coverage
