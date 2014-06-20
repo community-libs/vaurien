@@ -40,8 +40,8 @@ class DefaultProxy(StreamServer):
         self._statsd = statsd
         self._logger = logger
         self.behaviors = behaviors
-        self.behaviors.update(get_prefixed_sections(self.settings, logger,
-                                                    'behavior'))
+        self.behaviors.update(get_prefixed_sections(self.settings, 'behavior',
+                                                    logger))
         self.behavior = get_behaviors()['dummy']
         self.behavior_name = 'dummy'
         self.stay_connected = cfg.get('stay_connected', False)
@@ -50,8 +50,8 @@ class DefaultProxy(StreamServer):
 
         # creating the handler with the passed options
         protocols = get_protocols()
-        protocols.update(get_prefixed_sections(self.settings, logger,
-                                               'protocol'))
+        protocols.update(get_prefixed_sections(self.settings, 'protocol',
+                                               logger))
 
         self.handler = protocols[self.protocol]
 
@@ -59,6 +59,11 @@ class DefaultProxy(StreamServer):
         args = settings['args']
         self.handler.update_settings(extract_settings(args, 'protocol',
                                                       self.protocol))
+
+        protocol_specific_settings = self.settings.getsection('protocol.%s' % self.protocol)
+        if protocol_specific_settings:
+            self.handler.update_settings(protocol_specific_settings)
+
         self.handler.proxy = self
 
         logger.info('Options:')
