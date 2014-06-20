@@ -90,6 +90,7 @@ class DefaultProxy(StreamServer):
 
     def handle(self, client_sock, address):
         client_sock.setblocking(0)
+        client_sock.settimeout(self.timeout)
         behavior, behavior_name = self.get_behavior()
 
         statsd_prefix = '%s.%s.' % (self.protocol, uuid4())
