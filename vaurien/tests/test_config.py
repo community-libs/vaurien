@@ -3,6 +3,7 @@ from copy import copy
 from unittest import TestCase
 import sys
 import os
+import StringIO
 
 from vaurien import proxy, run
 from vaurien.run import main
@@ -43,11 +44,14 @@ class TestConfig(TestCase):
     def test_config(self):
 
         # make sure the config is taken into account
+        old_stderr = sys.stderr
+        sys.stderr = StringIO.StringIO()
         old = copy(sys.argv)
         try:
             sys.argv = ['vaurien', '--config', self.config]
             main()
         finally:
             sys.argv[:] = old
+            sys.stdout = old_stderr
 
         self.assertEqual(FakeProxy.kwargs['backend'], '0.0.0.0:33')
