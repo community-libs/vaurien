@@ -17,7 +17,7 @@ class Memcache(BaseProtocol):
     """
     name = 'memcache'
 
-    def _handle(self, source, dest, to_backend):
+    def _handle(self, source, dest, to_backend, on_between_handle):
         # https://github.com/memcached/memcached/blob/master/doc/protocol.txt
         # Sending the query
         buffer = self._get_data(source)
@@ -27,6 +27,7 @@ class Memcache(BaseProtocol):
 
         # sending the first packet
         dest.sendall(buffer)
+        on_between_handle()
 
         # finding the command we sent.
         cmd = RE_MEMCACHE_COMMAND.search(buffer)

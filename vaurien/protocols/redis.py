@@ -28,11 +28,12 @@ class Redis(BaseProtocol):
             pos = buffer.find(char)
         return pos, buffer
 
-    def _handle(self, source, dest, to_backend):
+    def _handle(self, source, dest, to_backend, on_between_handle):
         """ see http://redis.io/topics/protocol
         """
         # grabbing data
         bytepos, buffer = self._find(source, '', CRLF, dest)
+        on_between_handle()
         if bytepos == -1:
             return False
 

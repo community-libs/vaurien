@@ -16,11 +16,14 @@ class TCP(BaseProtocol):
     """
     name = 'tcp'
 
-    def _handle(self, source, dest, to_backend):
+    def _handle(self, source, dest, to_backend, on_between_handle):
         # default TCP behavior
         data = self._get_data(source)
         if data:
             dest.sendall(data)
+
+            if not on_between_handle():
+                return False
 
             # If we are not keeping the connection alive
             # we can suck the answer back and close the socket

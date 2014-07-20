@@ -30,3 +30,6 @@ class Dummy(object):
 
     def on_after_handle(self, protocol, source, dest, to_backend):
         return True
+
+    def on_between_handle(self, protocol, source, dest, to_backend):
+        return True

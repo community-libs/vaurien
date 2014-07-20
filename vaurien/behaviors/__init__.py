@@ -17,6 +17,10 @@ class Behavior(object):
         pass
 
     @abstractmethod
+    def on_between_handle(self, protocol, source, dest, to_backend):
+        pass
+
+    @abstractmethod
     def on_after_handle(self, protocol, source, dest, to_backend):
         pass
 
@@ -86,3 +90,6 @@ Behavior.register(Hang)
 
 from vaurien.behaviors.transient import Transient
 Behavior.register(Transient)
+
+from vaurien.behaviors.abort import Abort
+Behavior.register(Abort)
