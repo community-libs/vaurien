@@ -58,7 +58,7 @@ class Error(Dummy):
     The *inject* option can be used to inject data within valid data received
     from the backend. The Warmup option can be used to deactivate the random
     data injection for a number of calls. This is useful if you need the
-    communication to settle in some speficic protocols before the ramdom
+    communication to settle in some speficic protocols before the random
     data is injected.
 
     The *inject* option is deactivated when the *http* protocol is used.
