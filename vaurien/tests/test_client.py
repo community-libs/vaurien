@@ -3,7 +3,7 @@ from unittest import TestCase
 import sys
 import time
 
-from vaurienclient import Client
+from vaurien import Client
 
 
 class TestClient(TestCase):
