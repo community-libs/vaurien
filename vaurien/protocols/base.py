@@ -55,6 +55,9 @@ class BaseProtocol(object):
         if not behavior.on_before_handle(self, source, dest, to_backend):
             return True
         try:
-            return self._handle(source, dest, to_backend)
+            return self._handle(source, dest, to_backend,
+                                lambda: behavior.on_between_handle(self, source,
+                                                                   dest,
+                                                                   to_backend))
         finally:
             behavior.on_after_handle(self, source, dest, to_backend)
