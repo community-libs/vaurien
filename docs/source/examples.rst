@@ -10,6 +10,10 @@ Proxying on an HTTP backend and sending back 50x errors 20% of the time::
     $ vaurien --protocol http --proxy 0.0.0.0:8888 --backend blog.ziade.org:80 \
               --behavior 20:error
 
+And you can also simulate 50x errors 20% of the time to all responses::
+
+    $ vaurien --protocol http --proxy 0.0.0.0:8888 --backend 0.0.0.0:80 \
+              --behavior 20:error
 
 An SSL SMTP proxy with a 5% error rate and 10% delays::
 
