@@ -9,10 +9,11 @@ from gevent.pywsgi import WSGIServer
 class FakeProxy(object):
     """Fake proxy object, to mock the proxy in the tests"""
 
-    def __init__(self, behaviors=None):
+    def __init__(self, behaviors=None, backend=None):
         self.behaviors = behaviors or ['default', 'blackout']
         self.behavior = 'default'
         self.behavior_options = {}
+        self.backend = backend or '0.0.0.0:80'
 
     def get_behavior(self):
         # return None as a callable, since this is for tests only.
