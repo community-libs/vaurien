@@ -72,3 +72,4 @@ def set_backend(request):
     proxy = request.proxy
     proxy.backend = backend
     proxy.dest = parse_address(backend)
+    return {'status': 'ok'}
