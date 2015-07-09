@@ -20,7 +20,7 @@ class Http(BaseProtocol):
     options = copy.copy(BaseProtocol.options)
     options['overwrite_host_header'] = ("If True, the HTTP Host header will "
                                         "be rewritten with backend address.",
-                                        bool, True)
+                                        bool, False)
 
     def _close_both(self, source, dest):
         source.close()
