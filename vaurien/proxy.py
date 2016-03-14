@@ -78,6 +78,7 @@ class DefaultProxy(StreamServer):
         conn = create_connection(self.dest, timeout=self.timeout)
         if self.async_mode:
             conn.setblocking(0)
+            conn.settimeout(self.timeout)
         return conn
 
     def get_behavior(self):
