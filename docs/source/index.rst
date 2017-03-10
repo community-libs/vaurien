@@ -53,7 +53,7 @@ Design
 Vaurien is a TCP proxy that simply reads data sent to it and pass it to a
 backend, and vice-versa.
 
-It has built-in **protocols**: TCP, HTTP, Redis & Memcache. The **TCP** protocol
+It has built-in **protocols**: TCP, HTTP, Redis, SMTP, MySQL & Memcache. The **TCP** protocol
 is the default one and just sucks data on both sides and pass it along.
 
 Having higher-level protocols is mandatory in some cases, when Vaurien needs to
@@ -139,25 +139,39 @@ Controlling Vaurien from your code
 If you want to run and drive a Vaurien proxy from your code, the project
 provides a few helpers for this.
 
-For example, if you want to write a test that uses a Vaurien proxy,
-you can write::
+For example, if you want to write a test your backend service that runs on 
+**host:port** using Vaurien proxy, you can write::
 
 
     import unittest
-    from vaurien import Client, start_proxy, stop_proxy
+    from vaurien.util import start_proxy
+    from vaurien.util import stop_proxy
+    from vaurienclient import Client
 
 
     class MyTest(unittest.TestCase):
 
         def setUp(self):
-            self.proxy_pid = start_proxy(port=8080)
+            # by default the HTTP service used for controlling vaurien
+            # runs on localhost:8080, can be made to run on a different 
+            # host and port by using `http_host` and `http_port` as 
+            # argument to start_proxy.
+            # by default the proxy is bound to localhost:8000, can be bound
+            # to on a different host and port by using `proxy_host` and
+            # `proxy_port` as argument to start_proxy.
+
+            self.proxy_pid = start_proxy(
+                backend_host=host, # host where your backend service runs
+                backend_port=port, # port where your backend service runs
+                protocol='http' # :ref:`protocols`
+            )
 
         def tearDown(self):
             stop_proxy(self.proxy_pid)
 
         def test_one(self):
-            client = Client()
-            options = {'inject': True}
+            # client that connects to the HTTP server which controls vaurien
+            client = Client(host='localhost', port=8080)
 
             with client.with_behavior('error', **options):
                 # do something...
