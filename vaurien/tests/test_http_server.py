@@ -56,3 +56,15 @@ class TestHTTPServer(TestCase):
         self.assertEquals(res.json, {'status': 'ok'})
         self.assertEquals(self.proxy.behavior, behavior_name)
         self.assertEquals(self.proxy.behavior_options, behavior_options)
+
+    def test_get_backend_name(self):
+        # it is possible to get the configured backend
+        res = self.client.get('/backend')
+        self.assertEquals(res.json, {'backend':  self.proxy.backend})
+
+    def test_set_backend_name(self):
+        # it is possible to reconfigure the backend
+        new_backend = 'example.com:80'
+        self.client.put_json('/backend', {'backend': new_backend})
+        res = self.client.get('/backend')
+        self.assertEquals(res.json, {'backend':  new_backend})
