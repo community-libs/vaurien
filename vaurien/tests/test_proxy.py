@@ -32,7 +32,7 @@ class TestSimpleProxy(unittest.TestCase):
         self._web.terminate()
 
     def test_existing_behaviors(self):
-        wanted = ['blackout', 'delay', 'dummy', 'error', 'hang', 'transient', 'abort']
+        wanted = ['abort', 'blackout', 'delay', 'dummy', 'error', 'hang', 'transient']
         self.assertEqual(self.client.list_behaviors(), wanted)
 
     def test_proxy(self):
