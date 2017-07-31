@@ -44,7 +44,7 @@ def generate_protocols(app):
 
 def generate_plugins_doc(app, name, items, tmpl):
     ext = app.config['source_suffix']
-    filename = os.path.join(app.srcdir, "%s%s" % (name, ext))
+    filename = os.path.join(app.srcdir, "%s%s" % (name, ext[0]))
     items.sort()
     tmpl = ('.. do not edit: this file is generated automatically'.upper()
             + tmpl + '\n\n')
