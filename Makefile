@@ -15,7 +15,7 @@ coverage: bin/coverage
 	bin/nosetests --with-coverage --cover-html --cover-html-dir=html --cover-package=vaurien
 
 docs: bin/sphinx-build
-	SPHINXBUILD=../bin/sphinx-build $(MAKE) -C docs html $^
+	cd docs;make html SPHINXBUILD=../bin/sphinx-build
 
 bin/sphinx-build: bin/python
 	bin/pip install sphinx

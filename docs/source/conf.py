@@ -121,7 +121,7 @@ exclude_patterns = []
 # a list of builtin themes.
 
 html_theme_path = ['_themes']
-html_theme = 'mozilla'
+html_theme = 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
