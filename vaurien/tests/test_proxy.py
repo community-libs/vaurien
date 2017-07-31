@@ -32,8 +32,8 @@ class TestSimpleProxy(unittest.TestCase):
         self._web.terminate()
 
     def test_existing_behaviors(self):
-        wanted = ['abort', 'blackout', 'delay', 'dummy', 'error', 'hang', 'transient']
-        self.assertEqual(self.client.list_behaviors(), wanted)
+        wanted = ['blackout', 'delay', 'dummy', 'error', 'hang', 'transient', 'abort']
+        self.assertEqual(set(self.client.list_behaviors()), set(wanted))
 
     def test_proxy(self):
         # let's do a few simple request first to make sure the proxy works

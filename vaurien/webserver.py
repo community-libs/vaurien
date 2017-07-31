@@ -1,10 +1,13 @@
+# coding: utf-8
 from cornice.service import Service
 from pyramid.config import Configurator
 from pyramid.events import NewRequest
 
+from vaurien.util import parse_address
+
 behavior = Service('behavior', path='/behavior')
 behaviors = Service('behaviors', path='/behaviors')
-
+backend = Service('backend', path='/backend')
 
 @behavior.put()
 def set_behavior(request):
@@ -49,3 +52,24 @@ def get_config(global_config=None, **settings):
 
     config.add_subscriber(add_proxy_to_request, NewRequest)
     return config
+
+@backend.get()
+def get_backend(request):
+    return {'backend': request.proxy.backend}
+
+@backend.put()
+def set_backend(request):
+    try:
+        data = request.json
+        backend = data['backend']
+    except ValueError as error:
+        request.errors.add('body', '',
+                           'the value is not a valid json object')
+    except KeyError:
+        request.errors.add('body', '',
+                           'the value should contain a "backend" key')
+
+    proxy = request.proxy
+    proxy.backend = backend
+    proxy.dest = parse_address(backend)
+    return {'status': 'ok'}
