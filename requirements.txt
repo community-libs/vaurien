@@ -1,0 +1,6 @@
+cornice
+gevent
+statsd-client
+vaurienclient
+greenlet
+http-parser
