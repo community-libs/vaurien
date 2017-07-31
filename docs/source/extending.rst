@@ -15,7 +15,7 @@ the :class:`vaurien.protocols.base.BaseProtocol` class.
 
 The class needs to provide three elements:
 
-- a **name** class attribute, the protocol will ne known under that
+- a **name** class attribute, the protocol will be known under that
   name.
 
 - an optional **options** class attribute - a mapping containing options

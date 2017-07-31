@@ -143,7 +143,7 @@ class DefaultProxy(StreamServer):
                   statsd_prefix, behavior, behavior_name):
         """This is where all the magic happens.
 
-        Depending the configuration, we will chose to either drop packets,
+        Depending upon the configuration, we will chose to either drop packets,
         proxy them, wait a long time, etc, as defined in the configuration.
         """
         if hasattr(client_sock, 'closed') and client_sock.closed:

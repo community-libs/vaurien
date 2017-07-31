@@ -1,4 +1,7 @@
-*.pyc
+*.py[co]
 *.egg-info
+*.sublime-*
 *.un~
+.DS_Store
+.project
 .idea/
