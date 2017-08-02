@@ -1,10 +1,11 @@
 import gevent
 import random
 from uuid import uuid4
+from socket import error
 
 from gevent.server import StreamServer
 from gevent.socket import create_connection
-from gevent.select import select, error
+from gevent.select import select, error as gerror
 
 from vaurien.util import parse_address, get_prefixed_sections, extract_settings
 from vaurien.protocols import get_protocols
@@ -104,7 +105,7 @@ class DefaultProxy(StreamServer):
                         res = select([client_sock, backend_sock], [], [],
                                      timeout=self.timeout)
                         rlist = res[0]
-                    except error:
+                    except (error, gerror):
                         backend_sock.close()
                         backend_sock._closed = True
                         break
