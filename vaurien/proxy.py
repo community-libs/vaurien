@@ -163,9 +163,10 @@ class DefaultProxy(StreamServer):
         self._logger.debug('starting weirdify %s' % to_backend)
         try:
             # XXX cache this ?
-            args = self.settings['args']
-            behavior.update_settings(extract_settings(args, 'behavior',
-                                                      behavior_name))
+            # Caching is bad!  Does not allow overriding behaviors from the REST API!!
+            # args = self.settings['args']
+            # behavior.update_settings(extract_settings(args, 'behavior',
+            #                                           behavior_name))
             # calling the handler
             return self.handler(source, dest, to_backend, behavior)
         finally:
